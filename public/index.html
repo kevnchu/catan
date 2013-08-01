@@ -2,235 +2,99 @@
 <html>
     <head>
         <title></title>
+        <link href="css/style.css" rel="stylesheet" type="text/css" media="all">
     </head>
     <body>
-        <div id="container">
-            <div id="board_container"></div>
-
-            <input type="button" id="roll_button" value="Roll" />
-            <input type="button" id="end_button" value="End Turn" />
-            <button id="location_button" name="select_location" disabled>Select location</button>
-            <div id="chat_container" style="width: 500px;outline: solid 1px black;">
-                <div id="chat_log" style="width:400px; height:400px;"></div>
-                <input type="text" id="chat_input" style="height:2em;width:400px;" />
-                <input type="button" id="chat_button" value="Send" />
-            </div>
+        <div>
+            <button id="create-button">Create new game</button>
+            <button id="join-button">Join a game</button>
         </div>
-        <script type="text/javascript" src="lib/d3.js"></script>
-        <script type="text/javascript" src="lib/jquery-1.9.0.js"></script>
+        <div id="resources-container"></div>
+            <script type="text/template" id="resources-template">
+                <table>
+                    <tr>
+                        <% for (var resource in resources) { %>
+                            
+                            <% if (resources.hasOwnProperty(resource)) %>
+                                <th><%= resource %></th>
+                        <% } %>
+                    </tr>
+                    <tr>
+                        <% for (var resource in resources) { %>
+                            
+                            <% if (resources.hasOwnProperty(resource)) %>
+                                <td><%= resources[resource] %></td>
+                        <% } %>
+                    </tr>
+                </table>
+            </script>
+        <div>
+            <!-- Board -->
+            <div id="board-container" class="hidden">
+                <svg width="800" height="800" viewPort="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                </svg>
+            </div>
+
+            <div id="options-container">
+                <!-- costs -->
+                <div id="price-container">
+                    <ul>
+                        <li>Road: 1 brick, 1 wood</li>
+                        <li>Settlement: 1 brick, 1 wood, 1 wheat, 1 sheep</li>
+                        <li>City: 2 wheat, 3 stone</li>
+                        <li>Development Card: 1 wheat, 1 stone, 1 sheep</li>
+                    </ul>
+                </div>
+
+                <!-- Building -->
+                <div id="build-controls" class="hidden">
+                    <button type="button" id="build-settlement-button">Settlement</button>
+                    <button type="button" id="build-road-button">Road</button>
+                    <button type="button" id="build-city-button">City</button>
+                    <button type="button" id="build-devcard-button">Development Card</button>
+                </div>
+
+                <!-- Trade -->
+                <div id="trade-controls" class="hidden">
+                </div>
+            </div>
+
+
+            <!-- High level controls -->
+            <div id="action-container">
+                <!-- include all controls and only show whats relevant. -->
+
+                <!-- Roll -->
+                <div id="roll-controls" class="hidden">
+                    <button type="button" id="roll-button">Roll</button>
+                </div>
+
+                <!-- Action -->
+                <div id="action-controls" class="hidden">
+                    <button type="button" id="trade-button" disabled="true">Trade</button>
+                    <button type="button" id="build-button">Build</button>
+                    <button type="button" id="devcard-button" disabled="true">Play Development Card</button>
+                    <button type="button" id="end-button">End Turn</button>
+                </div>
+
+                <button id="submit-button">Submit</button>
+            </div>
+
+            <!-- Chat -->
+            <div id="chat-container">
+                <div id="chat-log"></div>
+                <div id="chat-controls">
+                    <input type="text" id="chat-input" />
+                    <button type="button" id="chat-button">Send</button>
+                </div>
+            </div>
+
+        </div>
+        <script type="text/javascript" src="js/lib/jquery-1.9.0.js"></script>
+        <script type="text/javascript" src="js/lib/underscore.js"></script>
+        <script type="text/javascript" src="js/lib/backbone.js"></script>
+        <script type="text/javascript" src="js/lib/pubsubz.js"></script>
         <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-        <script type="text/javascript">
-            var socket = io.connect('http://localhost:8787');
-
-
-            socket.on('connect', function() {
-                // call the server-side function 'adduser' and send one parameter (value of prompt)
-                socket.emit('adduser', prompt("What's your name?"));
-            });
-            window.onload = function() {
-                // positions of the tiles.
-                var tiles = [
-                    [110,0],
-                    [55,32.5],
-                    [0,65],
-                    [0,130],
-                    [0,195],
-                    [55,227.5],
-                    [110,260],
-                    [165,227.5],
-                    [220,195],
-                    [220,130],
-                    [220,65],
-                    [165,32.5],
-                    [110,65],
-                    [55,97.5],
-                    [55,162.5],
-                    [110,195],
-                    [165,162.5],
-                    [165,97.5],
-                    [110,130]
-                ];
-                var circles = [{"x":110,"y":32.5,"tiles":[0,1]},
-                    {"x":130,"y":0,"tiles":[0]},
-                    {"x":165,"y":0,"tiles":[0]},
-                    {"x":185,"y":32.5,"tiles":[0,11]},
-                    {"x":130,"y":65,"tiles":[0,1,12]},
-                    {"x":165,"y":65,"tiles":[0,11,12]},
-                    {"x":55,"y":65,"tiles":[1,2]},
-                    {"x":75,"y":32.5,"tiles":[1]},
-                    {"x":75,"y":97.5,"tiles":[1,2,13]},
-                    {"x":110,"y":97.5,"tiles":[1,12,13]},
-                    {"x":0,"y":97.5,"tiles":[2]},
-                    {"x":20,"y":65,"tiles":[2]},
-                    {"x":20,"y":130,"tiles":[2,3]},
-                    {"x":55,"y":130,"tiles":[2,3,13]},
-                    {"x":0,"y":162.5,"tiles":[3]},
-                    {"x":75,"y":162.5,"tiles":[3,13,14]},
-                    {"x":20,"y":195,"tiles":[3,4]},
-                    {"x":55,"y":195,"tiles":[3,4,14]},
-                    {"x":0,"y":227.5,"tiles":[4]},
-                    {"x":75,"y":227.5,"tiles":[4,5,14]},
-                    {"x":20,"y":260,"tiles":[4]},
-                    {"x":55,"y":260,"tiles":[4,5]},
-                    {"x":110,"y":227.5,"tiles":[5,14,15]},
-                    {"x":130,"y":260,"tiles":[5,6,15]},
-                    {"x":75,"y":292.5,"tiles":[5]},
-                    {"x":110,"y":292.5,"tiles":[5,6]},
-                    {"x":165,"y":260,"tiles":[6,7,15]},
-                    {"x":185,"y":292.5,"tiles":[6,7]},
-                    {"x":130,"y":325,"tiles":[6]},
-                    {"x":165,"y":325,"tiles":[6]},
-                    {"x":185,"y":227.5,"tiles":[7,15,16]},
-                    {"x":220,"y":227.5,"tiles":[7,8,16]},
-                    {"x":240,"y":260,"tiles":[7,8]},
-                    {"x":220,"y":292.5,"tiles":[7]},
-                    {"x":240,"y":195,"tiles":[8,9,16]},
-                    {"x":275,"y":195,"tiles":[8,9]},
-                    {"x":295,"y":227.5,"tiles":[8]},
-                    {"x":275,"y":260,"tiles":[8]},
-                    {"x":220,"y":162.5,"tiles":[9,16,17]},
-                    {"x":240,"y":130,"tiles":[9,10,17]},
-                    {"x":275,"y":130,"tiles":[9,10]},
-                    {"x":295,"y":162.5,"tiles":[9]},
-                    {"x":220,"y":97.5,"tiles":[10,11,17]},
-                    {"x":240,"y":65,"tiles":[10,11]},
-                    {"x":275,"y":65,"tiles":[10]},
-                    {"x":295,"y":97.5,"tiles":[10]},
-                    {"x":220,"y":32.5,"tiles":[11]},
-                    {"x":185,"y":97.5,"tiles":[11,12,17]},
-                    {"x":130,"y":130,"tiles":[12,13,18]},
-                    {"x":165,"y":130,"tiles":[12,17,18]},
-                    {"x":110,"y":162.5,"tiles":[13,14,18]},
-                    {"x":130,"y":195,"tiles":[14,15,18]},
-                    {"x":165,"y":195,"tiles":[15,16,18]},
-                    {"x":185,"y":162.5,"tiles":[16,17,18]}
-                ];
-                var vis = d3.select(document.getElementById('board_container')).append("svg:svg")
-                    .attr("width", '500px')
-                    .attr("height", '500px')
-                    //.attr('pointer-events', 'all')
-                    .append("svg:g");
-                var selection = [];
-
-                /**
-                 * UI elements.
-                 */
-                var chatInput = document.getElementById('chat_input');
-                var chatBox = document.getElementById('chat_log');
-                var chatButton = $('#chat_button');
-                var locationButton = $('#location_button');
-                var endButton = document.getElementById('end_button');
-                var locationMap = {};
-
-                vis.selectAll('g.tile')
-                    .data(tiles)
-                    .enter()
-                    .append('image')
-                    .attr('x', function (d) {
-                        return d[0] + 5;
-                    })
-                    .attr('y', function (d) {
-                        return d[1] + 5;
-                    })
-                    .attr('height', 64)
-                    .attr('width', 75)
-                    .attr('xlink:href', 'images/brick.png')
-                    .on('click', function (d, i) {
-                    });
-                vis.selectAll('g.point')
-                    .data(circles)
-                    .enter()
-                    .append('circle')
-                    .attr('cx', function (d) {
-                        return d.x + 5;
-                    })
-                    .attr('cy', function (d) {
-                        return d.y + 5;
-                    })
-                    .attr('id', function (d, i) {
-                        var id = 'soc.point' + i;
-                        var location = d.tiles.join();
-                        locationMap[location] = id;
-                        return id;
-                    })
-                    .attr('r', 5)
-                    .style('fill', '#174c4f')
-                    .on('mouseover', function (d) {
-                        d3.select(this).attr('r', 8);
-                    })
-                    .on('mouseout', function (d) {
-                        d3.select(this).attr('r', 5);
-                    })
-                    .on('click', function (d) {
-                        selection = d.tiles;
-                        d3.select(this).style('fill', '#ff9666');
-                    });
-
-                /**
-                 *
-                 * Socket listeners
-                 *
-                 */
-
-                // chat
-                socket.on('sendchat', function (data) {
-                    var line = document.createElement('div');
-                    var msg = document.createElement('span');
-                    var name = document.createElement('span');
-                    name.innerHTML = data.name + ': ';
-                    msg.innerHTML = data.msg;
-                    line.appendChild(name);
-                    line.appendChild(msg);
-                    chatBox.appendChild(line);
-                });
-                chatButton.on('click', function (e) {
-                    var msg = chatInput.value;
-                    chatInput.value = '';
-                    socket.send(msg);
-                });
-
-                socket.on('updateboard', function (data) {
-                    //console.log('new board data ' + data);
-                    var settlements = data.settlements,
-                        roads = data.roads,
-                        robber = data.roads;
-                    settlements.forEach(function (settlement) {
-                        // get ids of each location with a settlement on it.
-                        var location = settlement.location.join();
-                        var id = locationMap[location];
-                        vis.select('#soc.point' + id)
-                            .style('fill', '#ddd');
-                    });
-                    roads.forEach(function () {
-                    });
-                });
-
-                // Roll
-                socket.on('roll', function () {
-                    //socket.send('Rolling...');
-                    socket.emit('roll'); 
-                });
-
-                socket.on('startTurn', function () {
-                });
-
-                socket.on('chooselocation', function () {
-                    locationButton.attr('disabled', false);
-                });
-                socket.on('chooseroad', function () {
-                    // TODO
-                    //locationButton.attr('disabled', false);
-                });
-
-                locationButton.on('click', function () {
-                    socket.emit('chooselocation', JSON.stringify(selection));
-                    locationButton.attr('disabled', true);
-                });
-                endButton.onclick = function () {
-                    socket.emit('endTurn');
-                };
-            }; 
-        </script>
-
+        <script type="text/javascript" data-main="js/soc" src="js/lib/require.js"></script>
     </body>
 </html>
