@@ -1,17 +1,20 @@
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events').EventEmitter,
+    Q = require('q');
 
 var Players = require('./players').Players,
     Player = require('./player').Player,
     Settlement = require('./settlement'),
     Road = require('./road'),
     DevelopmentCards = require('./development_cards'),
-    // TODO rename to avoid confusion w/ stdlib util.
-    utils = require('../utils');
+    utils = require('./utils'),
+    components = require('./components');
 
 exports.Board = Board;
 
 function Board() {
-    this.sea_locations = {
+    this.id = utils.createUniqueId();
+
+    this.harbor_interSections = {
       stone: [-29,-30],
       wheat: [-25,-26],
       mystery: [-23,-22,-12,-13,-9,-10,-2,-3],
@@ -19,211 +22,149 @@ function Board() {
       brick: [-15,-16],
       sheep: [-5,-6]
     };
-    var locations = [[0,1,12], [0,11,12], [0,11,-1], [0,-2], [0,-3],
-      [0,1,-4], [1,12,13], [1,13,2], [1,-5], [1,-6,2],
-      [2,3,13], [2,-7], [2,-8], [2,3,-9], [3,13,14],
-      [3,14,4], [3,-10], [3,-11,4], [4,14,5], [4,5,-14],
-      [4,-12], [4,-13], [5,14,15], [5,6,15], [5,6,-16],
-      [5,-15], [6,7,15], [6,7,-19], [6,-17], [6,-18],
-      [7,15,16], [7,8,16], [7,8,-21], [7,-20], [8,-22],
-      [8,-23], [8,-24,9], [8,9,16], [9,-25], [9,-26,10],
-      [9,10,17], [9,17,16], [10,-27], [10,-28], [10,-29,11],
-      [10,11,17], [11,-30], [11,12,17], [12,17,18], [16,17,18],
-      [15,16,18], [14,15,18], [13,14,18], [12,13,18]];
-    
-    this.locations = {};
-
-    locations.forEach(function (location) {
-        this.locations[utils.getLocationId(location)] = location;
-    }, this);
-        
-    this.resourceMap = {};
-    this.initResourceLocations();
-
-    this.diceMap = {};
-    this.initResourceValues();
     
     this.settlements = [];
     this.roads = [];
 
-    //this.dev_cards = DevelopmentCards.new
-
-    // XXX setting up mock players
     this.players = new Players();
-    //p1 = Player.new 'p1'
-    //var p1 = new Player('p1');
-
-//    for (var resource in p1.resources) {
-//        p1.resources[resource] += 6;
-//    }
-//    p1.resources.forEach(function (resource) {
-//        p1.resources[resource] += 6;
-//    });
-//    this.players.newPlayer(p1);
 }
+
+Board.prototype.addUser = function (player) {
+    var players = this.players;
+    players.addPlayer(player);
+    this.notify(player.name + ' joined the game');
+    if (players.count() === 2) {
+        this.initialize();
+    }
+};
+
+Board.prototype.removeUser = function (id) {
+    var player = this.players.getPlayer(id);
+    console.log(player.name, 'has left the game');
+    this.players.removePlayer(id);
+};
+
+Board.prototype.initialize = function () {
+    // create new random board.
+    var boardData,
+        resourceMap = this.initResourceLocations(),
+        diceMap = this.initResourceValues(resourceMap);
+
+    this.resourceMap = resourceMap;
+    this.diceMap = diceMap;
+
+    boardData = {
+        resourceMap: resourceMap,
+        diceMap: diceMap,
+        playerMap: this.players.getSerializablePlayerMap()
+    };
+    this.broadcast('setup', boardData);
+    
+    // start game
+    this.firstRoll();
+};
 
 /**
- *
- * the problem is that inner gets called immediately
- * after fn invocation instead of after the client
- * responds.
- * What we really want is.
- * each(fn, complete) ->
- *     invoke fn for the first player.
- *     when player has responded
- *     call players.next
- *     repeat until every player has responded.
- *     call complete.
- *
+ * figure out who is going first.
  */
-function forEachPlayer(fn, complete, reverse) {
-    var players = this.players,
+Board.prototype.firstRoll = function () {
+    var self = this,
+        players = this.players,
         playerCount = players.count(),
         count = 0,
-        messager = new EventEmitter();
-    
-    // Always start at the first player.
-    players.reset();
-    if (reverse) {
-        players.previous();
-    }
-    function inner() {
+        max = 0,
+        id;
+
+    function rollHelper() {
         var player = players.getCurrent();
-        console.log(player.id + ' listening to next event');
-        messager.once('next', function () {
-            if (++count < playerCount) {
-                // Move to the next player
-                if (reverse) {
-                    players.previous();
-                } else {
+        self.roll(player)
+            .then(function (diceValue) {
+                if (diceValue > max)
+                    id = player.id;
+                if (++count < playerCount) {
+                    console.log('count:', count, 'out of:', playerCount);
                     players.next();
+                    rollHelper();
+                } else {
+                    console.log(players.getPlayer(id).name, 'goes first.');
+                    players.setCurrent(id);
+                    self.setup();
                 }
-                inner();
-            } else {
-                // we've executed fn for each player
-                if (complete) {
-                    complete();
-                }
-            }
-        });
-        fn(player, messager);
+            });
     }
-    if (count < playerCount) {
-        inner();
-    }
-}
 
-Board.prototype.addUser = function (data) {
-    var player = new Player(data.name, data.socket),
-        players = this.players;
-    players.newPlayer(player);
-    console.log("player count: " + players.count());
-    // XXX temp for testing only using 2 players.
-    if (players.count() > 1) {
-        console.log('Starting game.');
-        this.firstRoll();
-    }
+    rollHelper();
 };
-
-Board.prototype.firstRoll = function () {
-    var max = 0,
-        id,
-        diceValue,
-        players = this.players,
-        rollDice = this.rollDice;
-    forEachPlayer.call(this, function (player, messager) {
-        player.socket.emit('roll');
-        player.socket.once('roll', function () {
-            diceValue = rollDice();
-            if (diceValue > max) {
-                max = diceValue;
-                id = player.id;
-            }
-            messager.emit('next');
-        });
-    }, (function () {
-        // Finally.
-        console.log(id + ' goes first.');
-        players.setCurrent(id);
-        // start setup
-        this.setup();
-    }).bind(this));
-};
-
-//Board.prototype.setupYO = function () {
-//    // Let each player pick initial settlements.
-//    var self = this;
-//    forEachPlayer.call(this, function (player, messager) {
-//        // get settlement location...
-//        player.socket.emit('chooselocation');
-//        player.socket.once('chooselocation', function (settlementLocation) {
-//            self.placeSettlement(player, settlementLocation);
-//            // get road location.
-//            player.socket.emit('chooselocation');
-//            player.socket.once('chooselocation', function (roadLocation) {
-//                self.placeRoad(player, settlementLocation, roadLocation);
-//                messager.emit('next');
-//            });
-//        });
-//    }, function () {
-//        // Do in reverse order
-//        forEachPlayer.call(self, function (player, messager) {
-//            // get settlement location...
-//            // get road location.
-//            player.socket.emit('chooselocation');
-//            player.socket.once('chooselocation', function (settlementLocation) {
-//                self.placeSettlement(player, settlementLocation);
-//                player.socket.emit('chooselocation');
-//                // distribute resources for second location.
-//                self.distributeResources(player, settlementLocation);
-//                player.socket.once('chooselocation', function (roadLocation) {
-//                    self.placeRoad(player, settlementLocation, roadLocation);
-//                    messager.emit('next');
-//                });
-//            });
-//        }, self.start, true);
-//    });
-//};
 
 Board.prototype.setup = function () {
-    var self = this;
-    forEachPlayer.call(this, function (player, messager) {
-        self.chooseSettlement(player, function (location) {
-            self.chooseRoad(player, location, function () {
-                messager.emit('next');
-            });
+    var players = this.players,
+        self = this,
+        playerCount = players.count(),
+        count = 0;
+
+    function setupHelper() {
+        var player = players.getCurrent();
+        self.chooseSettlement(player)
+        .then(self.chooseRoad.bind(self))
+        .then(function () {
+            if (++count < 2 * playerCount) {
+                if (count < playerCount) {
+                    players.next();
+                } else if (count > playerCount) {
+                    players.previous();
+                }
+                setupHelper();
+            }
         });
-    }, function () {
-        forEachPlayer.call(self, function (player, messager) {
-            self.chooseSettlement(player, function (location) {
-                self.distributeResources(player, location);
-                self.chooseRoad(player, location, function () {
-                    messager.emit('next');
-                });
-            });
-        }, self.start, true);
-    });
+    }
+
+    setupHelper();
 };
 
-Board.prototype.chooseSettlement = function (player, callback) {
-    var self = this;
-    player.socket.emit('chooselocation');
-    player.socket.once('chooselocation', function (settlementLocation) {
-        self.placeSettlement(player, settlementLocation);
-        callback.call(this, settlementLocation);
+Board.prototype.roll = function (player) {
+    // return a promise. when we receive client message, resolve promise
+    var self = this,
+        rollDice = self.rollDice,
+        deferred = Q.defer();
+    player.socket.emit('roll');
+    player.socket.once('roll', function () {
+        var diceValue = rollDice();
+        // broadcast dice value to everyone.
+        self.notify(player.name + ' rolled ' + diceValue);
+        deferred.resolve(diceValue, player.id);
     });
+
+    return deferred.promise;
+};
+
+Board.prototype.chooseSettlement = function (player) {
+    // return a promise. when we receive client message, resolve promise
+    var self = this,
+        deferred = Q.defer();
+    player.socket.emit('choosesettlement');
+    player.socket.once('choosesettlement', function (intersectionId) {
+        console.log('placing settlement at', intersectionId);
+        self.placeSettlement(player, intersectionId);
+        deferred.resolve(player);
+    });
+
+    return deferred.promise;
 };
 
 Board.prototype.chooseCity = function (player, callback) {
 };
 
+// currently depends on already having a starting position selected.
 Board.prototype.chooseRoad = function (player, start, callback) {
-    var self = this;
-    player.socket.emit('chooselocation');
-    player.socket.once('chooselocation', function (roadLocation) {
-        self.placeRoad(player, start, roadLocation);
-        callback.call(this, start, roadLocation);
+    var self = this,
+        deferred = Q.defer();
+    player.socket.emit('chooseroad');
+    player.socket.once('chooseroad', function (edge) {
+        console.log('placing road at', edge[0], edge[1]);
+        self.placeRoad(player, edge);
+        deferred.resolve(player);
     });
+    return deferred.promise;
 };
 
 Board.prototype.distributeResources = function (player, location, isCity) {
@@ -236,17 +177,145 @@ Board.prototype.distributeResources = function (player, location, isCity) {
 
 Board.prototype.start = function () {
     console.log("Setup complete. Game starting");
+    this.players.reset();
+    this.nextPlayer();
+};
+
+function trade(data) {
+}
+
+function build(data) {
+    var buildMap = {
+        settlement: this.buildSettlement,
+        road: this.buildRoad,
+        city: this.buildCity,
+        devCard: this.buildDevCard
+    };
+    buildMap[data.type](data);
+}
+
+function devcard(data) {
+    var devCardMap = {
+        knight: knight,
+        road_building: roadBuilding,
+        monopoly: monopoly,
+        year_of_plenty: yearOfPlenty,
+        victory_point: function () {
+            // add victory point.
+        }
+    };
+}
+
+var addListeners = function (player) {
+    var socket = player.socket;
+    socket.on('trade', trade);
+    socket.on('build', build);
+    socket.on('devcard', devcard);
+};
+
+var removeListeners = function (player) {
+    var socket = player.socket;
+    socket.removeAllListeners('trade');
+    socket.removeAllListeners('build');
+    socket.removeAllListeners('devcard');
+};
+
+Board.prototype.nextPlayer = function () {
+    var self = this,
+        players = this.players,
+        player = players.getCurrent(),
+        socket = player.socket;
+    this.addListeners(socket);
+    socket.emit('action', { path: 'helpers/action.html' });
+    socket.once('endturn', function () {
+        players.next();
+        self.removeListeners(socket);
+        self.nextPlayer();
+    });
+};
+
+Board.prototype.pay = function (player, price) {
+    var resources = player.resource,
+        resource,
+        quantity;
+    // determine if player has sufficient resources
+    for (resource in price) {
+        if (price.hasOwnProperty(resource)) {
+            quantity = price[resource];
+            if (resources[resource] < quantity) {
+                return false;
+            }
+        }
+    }
+    // make payment
+    for (resource in price) {
+        if (price.hasOwnProperty(resource)) {
+            quantity = price[resource];
+            resources[resource] -= quantity;
+        }
+    }
+    return true;
+};
+
+Board.prototype.buildSettlement = function (player, intersectionId) {
+    var cost = {
+        brick: 1,
+        wood: 1,
+        wheat: 1,
+        sheep: 1
+    };
+    if (this.pay(player, cost)) {
+        // build this shit.
+        this.placeSettlement(player, intersectionId);
+    }
+};
+
+Board.prototype.buildCity = function (player, intersectionId) {
+    var cost = {
+        brick: 1,
+        wood: 1,
+        wheat: 1,
+        sheep: 1
+    };
+    if (this.pay(player, cost)) {
+        // build this shit.
+        this.placeSettlement(player, intersectionId);
+    }
+};
+
+Board.prototype.buildRoad = function () {
+};
+
+Board.prototype.buildDevCard = function () {
+};
+
+Board.prototype.placeSettlement = function (player, intersectionId) {
+    var settlement = {
+        intersectionId: intersectionId,
+        playerId: player.id
+    };
+    this.settlements.push(settlement);
+    this.broadcast('update', {type: 'settlement', settlement: settlement});
+};
+
+Board.prototype.placeRoad = function (player, edge) {
+    var road = {
+        edge: edge,
+        playerId: player.id
+    };
+    this.roads.push(road);
+    this.broadcast('update', {type: 'road', road: road});
 };
 
 /**
  * placement methods must trigger propagate event.
  */
-Board.prototype.placeSettlement = function (player, settlementLocation) {
+Board.prototype.isValidSettlement = function (player, intersectionId) {
     // Check to see if this is a valid settlement location.
-    var locations = this.locations;
+    var intersectionMap = components.intersectionMap;
     var settlements = this.settlements;
-    var settlementLocationId = utils.getLocationId(settlementLocation);
-    if (!locations[settlementLocationId]) {
+    var intersection = intersectionMap[intersectionId];
+    if (!intersectionMap[intersectionId]) {
         return;
     }
     
@@ -254,10 +323,10 @@ Board.prototype.placeSettlement = function (player, settlementLocation) {
     //     - location is not occupied
     //     - at least 2 roads  away from any other settlement.
     var isLegal = settlements.every(function (settlement) {
-        var location = settlement.location;
+        var otherIntersection = intersectionMap[settlement.intersectionId];
         var count = 0;
-        location.forEach(function (point) {
-            if (settlementLocation.indexOf(point) >= 0) {
+        otherIntersection.forEach(function (point) {
+            if (intersection.indexOf(point) >= 0) {
                 count++;
             }
         });
@@ -268,8 +337,12 @@ Board.prototype.placeSettlement = function (player, settlementLocation) {
     }
     //     - player has a road that is connected
     isLegal = player.roads.some(function (road) {
-        var locationId = utils.getLocationId(road.edge[0]);
-        if (locationId === settlementLocationId) {
+        var roadIntersectionId = road.edge[0];
+        if (roadIntersectionId === intersectionId) {
+            return true;
+        }
+        roadIntersectionId = road.edge[1];
+        if (roadIntersectionId === intersectionId) {
             return true;
         }
     });
@@ -280,7 +353,7 @@ Board.prototype.placeSettlement = function (player, settlementLocation) {
     // create new settlent and add to data structure.
 };
 
-Board.prototype.placeRoad = function (player, start, end) {
+Board.prototype.isValidRoad = function (player, start, end) {
     // Validate that the start and end locations are valid
 
     // check to see if location is legal
@@ -299,14 +372,13 @@ Board.prototype.transitionState = function () {
 };
 
 Board.prototype.initResourceLocations = function () {
-    // TODO test this.
-    var resourceMap = this.resourceMap,
-        temp = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+    var resourceMap = {},
+        tileIdArray = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
         locations = [],
         i,
         resource;
-    while (temp.length) {
-        locations.push(temp.splice(Math.floor(Math.random() * temp.length), 1)[0]);
+    while (tileIdArray.length) {
+        locations.push(tileIdArray.splice(Math.floor(Math.random() * tileIdArray.length), 1)[0]);
     }
     for (i = 0; i < locations.length - 1; i++) {
         if (i < 4) {
@@ -320,41 +392,59 @@ Board.prototype.initResourceLocations = function () {
         } else {
             resource = 'brick';
         }
-        resourceMap[locations[i]] = resource;
+        resourceMap[locations[i]] = {
+            type: resource
+        };
     }
-    resourceMap[locations[18]] = null;
+    resourceMap[locations[18]] = {
+        type: null,
+        value: 7
+    };
+
+    return resourceMap;
 };
 
-Board.prototype.initResourceValues = function () {
-    // TODO test this.
-    var resourceLocations = [],
-        resourceMap = this.resourceMap,
-        diceMap = this.diceMap,
-        location,
+Board.prototype.initResourceValues = function (resourceMap) {
+    var diceMap = {},
+        resourceLocations = [],
+        diceValues = [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12],
+        diceValue,
+        locationId,
         resource,
         robber,
         i;
-    for (location in resourceMap) {
-        if (resourceMap.hasOwnProperty(location)) {
-            if (resourceMap[location]) {
-                resourceLocations.push(location);
+    diceValues = utils.shuffleArray(diceValues);
+    for (locationId in resourceMap) {
+        if (resourceMap.hasOwnProperty(locationId)) {
+            if (resourceMap[locationId]) {
+                diceValue = diceValues.pop();
+                if (!diceMap[diceValue]) {
+                    diceMap[diceValue] = [];
+                }
+                diceMap[diceValue].push(locationId);
+                resourceMap[locationId].value = diceValue;
             } else {
-                robber = location;
+                diceMap[7] = locationId;
             }
         }
     }
-    for (i = 2; i <= 12; i++) {
-        if (i === 2 || i === 12) {
-            diceMap[i] = resourceLocations.pop();
-        } else if (i === 7) {
-            diceMap[i] = [robber];
-        } else {
-            diceMap[i] = [resourceLocations.pop(), resourceLocations.pop()];
-        }
-    }
+    return diceMap;
 };
 
 Board.prototype.rollDice = function () {
     return Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 2;
 };
 
+Board.prototype.notify = function (msg) {
+    this.broadcast('sendchat', {name: '*** server ***', msg: msg});
+};
+
+Board.prototype.broadcast = function (channel, data) {
+    var players = this.players.players,
+        player,
+        i;
+    for (i = 0; i < players.length; i++) {
+        player = players[i];
+        player.socket.emit(channel, data);
+    }
+};

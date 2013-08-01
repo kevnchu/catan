@@ -1,15 +1,15 @@
-var Roads = require ('./roads').Roads;
+var Roads = require('./roads').Roads,
+    createUniqueId = require('./utils').createUniqueId;
 
 exports.Player = Player;
 
 function Player(name, socket) {
-    // TODO create actual id.
-    this.id = name;
+    this.id = createUniqueId();
     this.name = name;
     this.socket = socket;
     this.points = 0;
     this.settlements = [];
-    this.roads = new Roads();
+    this.roads = [];
     this.resources = {
       wood: 0,
       stone: 0,
@@ -18,4 +18,5 @@ function Player(name, socket) {
       sheep: 0
     };
     this.devCards = [];
+    this.color = null;
 }

@@ -1,5 +1,6 @@
 exports.Players = Players;
 
+var colors = ['red', 'orange', 'white', 'blue'];
 function Players() {
     this.players = [];
     this.playerMap = {};
@@ -10,12 +11,29 @@ function Players() {
  * Adds a new player to the list of players.
  * @param {object} player
  */
-Players.prototype.newPlayer = function (player) {
+Players.prototype.addPlayer = function (player) {
     if (this.players.length < 4) {
+        player.color = colors.pop();
         this.players.push(player);
         this.playerMap[player.id] = player;
     } else {
         console.log('Game is full');
+    }
+};
+
+Players.prototype.removePlayer = function (id) {
+    var players = this.players,
+        playerMap = this.playerMap,
+        player,
+        i;
+    for (i = 0; i < players.length; i++) {
+        player = players[i];
+        if (player.id === id) {
+            players.splice(i, 1);
+            delete playerMap[id];
+            player = null;
+            this.playerCounter--;
+        }
     }
 };
 
@@ -26,7 +44,6 @@ Players.prototype.next = function () {
     var numPlayers = this.players.length;
     if (numPlayers > 0) {
         this.playerCounter = (this.playerCounter + 1) % numPlayers;
-        return this.players[this.playerCounter];
     }
 };
 
@@ -40,7 +57,6 @@ Players.prototype.previous = function () {
         if (this.playerCounter < 0) {
             this.playerCounter = this.players.length - 1;
         }
-        return this.players[this.playerCounter];
     }
 };
 
@@ -52,12 +68,46 @@ Players.prototype.getPlayer = function (id) {
     return this.playerMap[id];
 };
 
+Players.prototype.getName = function (id) {
+    var player = this.getPlayer(id);
+    return player.name;
+};
+
 /**
  * returns the current player.
  */
 Players.prototype.getCurrent = function () {
     return this.players[this.playerCounter];
 };
+
+Players.prototype.getSerializablePlayerMap = function () {
+    var serializableMap = {},
+        serializableProperties = ['id', 'name', 'points', 'color'],
+        playerMap = this.playerMap,
+        player,
+        playerId,
+        copyProps;
+    
+    copyProps = function (player) {
+        var i,
+            prop,
+            copy = {};
+        for (i = 0; i < serializableProperties.length; i++) {
+            prop = serializableProperties[i];
+            copy[prop] = player[prop];
+        }
+        return copy;
+    };
+
+    for (playerId in playerMap) {
+        if (playerMap.hasOwnProperty(playerId)) {
+            player = playerMap[playerId];
+            serializableMap[playerId] = copyProps(player);
+        }
+    }
+    return serializableMap;
+};
+
 
 /**
  * Sets the current player to player with given id.
