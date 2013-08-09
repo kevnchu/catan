@@ -183,12 +183,13 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
         // update board model.
         switch (data.type) {
             case 'settlement':
-                console.log('LOG: board update. adding settlement', data.settlement);
+                view.drawSettlement(data.settlement);
                 break;
             case 'road':
-                console.log('LOG: board update. adding road', data.road);
+                view.drawRoad(data.road);
                 break;
             case 'city':
+                // TODO
                 break;
         }
     }

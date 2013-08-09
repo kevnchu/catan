@@ -79,8 +79,10 @@ Board.prototype.firstRoll = function () {
         var player = players.getCurrent();
         self.roll(player)
             .then(function (diceValue) {
-                if (diceValue > max)
+                if (diceValue > max) {
                     id = player.id;
+                    max = diceValue;
+                }
                 if (++count < playerCount) {
                     console.log('count:', count, 'out of:', playerCount);
                     players.next();
@@ -272,10 +274,8 @@ Board.prototype.buildSettlement = function (player, intersectionId) {
 
 Board.prototype.buildCity = function (player, intersectionId) {
     var cost = {
-        brick: 1,
-        wood: 1,
-        wheat: 1,
-        sheep: 1
+        wheat: 2,
+        stone: 3
     };
     if (this.pay(player, cost)) {
         // build this shit.
