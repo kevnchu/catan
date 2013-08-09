@@ -62,7 +62,8 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
     registerControls(buildControls);
 
     var board = new Board();
-    var player = new Player({playerId: 'foo'});
+    var playerId;
+    //var player = new Player({playerId: 'foo'});
 
     function setup(boardData) {
         var tileDiceValueMap = {},
@@ -88,31 +89,6 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
         view.drawResourceKey();
     }
 
-    // test {
-    var s1 = {
-        playerId: 'player1',
-        type: 'settlement',
-        intersection: [0,1,12]
-    };
-    var s2 = {
-        playerId: 'player2',
-        type: 'settlement',
-        intersection: [0,-3]
-    };
-    var r1 = {
-        playerId: 'player1',
-        edge: [[1,12,13],[0,1,12]]
-    };
-    board.model.on('addSettlement', function (settlement) {
-        view.drawSettlement(settlement);
-    });
-
-    board.model.on('addRoad', function (road) {
-        view.drawRoad(road);
-    });
-
-    // }
-
     var socket = io.connect(window.location.href);
 
     socket.on('connect', function () {
@@ -131,6 +107,7 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
 
     socket.on('adduser', function (id) {
         // set player id.
+        playerId = id;
     });
 
     // chat
@@ -147,17 +124,17 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
 
     chatInput.on('keypress', function (e) {
         if (e.which === 13) {
-            var msg = chatInput.value;
-            chatInput.value = '';
-            socket.send(msg);
+            sendChat();
         }
     });
 
-    chatButton.on('click', function (e) {
-        var msg = chatInput.value;
-        chatInput.value = '';
+    chatButton.on('click', sendChat);
+
+    function sendChat() {
+        var msg = chatInput[0].value;
+        chatInput[0].value = '';
         socket.send(msg);
-    });
+    }
 
     socket.on('playerupdate', function (data) {
         console.log('new player data ' + data);
@@ -220,7 +197,7 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
         alert('choose settlement');
         var token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
             var settlement = {
-                playerId: 'player1',
+                playerId: playerId,
                 type: 'settlement',
                 intersectionId: intersectionId
             };
@@ -239,7 +216,7 @@ require(['view', 'board', 'player', 'utils'], function (view, Board, Player, uti
             alert(intersectionId);
             if (edge.length === 2) {
                 road = {
-                    playerId: 'player1',
+                    playerId: playerId,
                     edge: edge
                 };
                 view.drawRoad(road);

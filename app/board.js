@@ -435,8 +435,12 @@ Board.prototype.rollDice = function () {
     return Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 2;
 };
 
-Board.prototype.notify = function (msg) {
-    this.broadcast('sendchat', {name: '*** server ***', msg: msg});
+/**
+ * @param {string} msg
+ * @param {string} [name]
+ */
+Board.prototype.notify = function (msg, name) {
+    this.broadcast('sendchat', {name: name || '*** server ***', msg: msg});
 };
 
 Board.prototype.broadcast = function (channel, data) {

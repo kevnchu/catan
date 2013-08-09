@@ -1,6 +1,6 @@
 # Catan
 
-Multiplayer, web based Settlers of Catan.
+Multiplayer Settlers of Catan for the web.
 
 ## Running
 

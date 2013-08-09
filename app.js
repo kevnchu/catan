@@ -47,6 +47,16 @@ var handleConnection = function (socket) {
         }
     });
 
+    // where should this be handled.
+    socket.on('message', function (msg) {
+        //var board = boardId && boards[boardId];
+        var board = boards[1];
+        if (player && board) {
+            // Propagate message to players in same game.
+            board.notify(msg, player.name);
+        }
+    });
+
     socket.on('createboard', function () {
         var board = new Board();
         boardId = board.id;
@@ -60,7 +70,8 @@ var handleConnection = function (socket) {
     socket.on('disconnect', function () {
         if (boardId && player) {
             // remove user from board
-            boards[boardId].removeUser(player.id);
+            // XXX broken because we're mocking board
+            //boards[boardId].removeUser(player.id);
         }
     });
 };
