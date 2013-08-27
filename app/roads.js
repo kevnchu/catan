@@ -1,6 +1,32 @@
 exports.Roads = Roads;
 function Roads() {
+    this.roads = [];
 }
+
+Roads.prototype = {
+    init: function () {
+    },
+
+    addRoad: function (road) {
+        this.roads.push(road);
+    },
+
+    longestPath: function () {
+    },
+
+    byPlayerId: function (playerId) {
+        return this.roads.filter(function (x) {
+            return x.playerId === playerId;
+        });
+    },
+
+    each: function (fn) {
+        var roads = this.roads,
+            i;
+        for (i = 0; i < roads.length; i++)
+            fn(roads[i]);
+    }
+};
 //class Roads
 //
 //  attr_reader :roads
