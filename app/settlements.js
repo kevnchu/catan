@@ -2,7 +2,7 @@ var Settlements;
 
 exports.Settlements = Settlements;
 
-Settlements = function (intersectionId, playerId) {
+Settlements = function () {
     this.settlements = [];
 };
 
@@ -14,6 +14,12 @@ Settlements.prototype = {
     byPlayerId: function (playerId) {
         return this.settlements.filter(function (x) {
             return x.playerId === playerId;
+        });
+    },
+
+    byIntersectionId: function (intersectionId) {
+        return this.settlements.filter(function (x) {
+            return x.intersectionId === intersectionId;
         });
     },
 

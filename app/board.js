@@ -3,8 +3,8 @@ var EventEmitter = require('events').EventEmitter,
 
 var Players = require('./players').Players,
     Player = require('./player').Player,
-    Settlement = require('./settlement'),
-    Road = require('./road'),
+    Settlements = require('./settlements'),
+    Roads = require('./roads'),
     DevelopmentCards = require('./development_cards'),
     utils = require('./utils'),
     components = require('./components');
@@ -23,6 +23,8 @@ function Board() {
       sheep: [-5,-6]
     };
     
+    // TODO change settlements and roads to be instances of
+    // setttlements and roads classes.
     this.settlements = [];
     this.roads = [];
 
@@ -153,11 +155,11 @@ Board.prototype.chooseSettlement = function (player) {
     return deferred.promise;
 };
 
-Board.prototype.chooseCity = function (player, callback) {
+Board.prototype.chooseCity = function (player) {
 };
 
 // currently depends on already having a starting position selected.
-Board.prototype.chooseRoad = function (player, start, callback) {
+Board.prototype.chooseRoad = function (player, start) {
     var self = this,
         deferred = Q.defer();
     player.socket.emit('chooseroad');
@@ -169,18 +171,35 @@ Board.prototype.chooseRoad = function (player, start, callback) {
     return deferred.promise;
 };
 
-Board.prototype.distributeResources = function (player, location, isCity) {
-    var self = this;
-    location.forEach(function (id) {
-        var resource = self.resourceMap[id];
-        player.resources[resource] += isCity ? 2 : 1;
-    });
-};
-
-Board.prototype.start = function () {
-    console.log("Setup complete. Game starting");
-    this.players.reset();
-    this.nextPlayer();
+/**
+ * Given a tile id, distributes resources to players
+ * who have a settlement adjacent to that tile.
+ * @param {number} tileId
+ */
+Board.prototype.distributeResources = function (tileId) {
+    var self = this,
+        // determine resource type
+        resource = self.resourceMap[tileId],
+        settlements = self.settlements,
+        updateQueue = [],
+        settlement,
+        player,
+        i;
+    for (i = 0; i < settlements.length; i++) {
+        settlement = settlements[i];
+        if (settlement.intersection.indexOf(tileId) >= 0) {
+            player = self.players.getPlayer(settlement.playerId);
+            player.resources[resource] += settlement.type === 'city' ? 2 : 1;
+            if (updateQueue.indexOf(playerId) < 0) {
+                updateQueue.push(playerId);
+            }
+        }
+    }
+    // TODO notify players in update queue
+    for (i = 0; i < updateQueue.length; i++) {
+        player = self.players.getPlayer(updateQueue[i]);
+        player.socket.emit('updateresources', player.resources);
+    }
 };
 
 function trade(data) {
@@ -294,7 +313,7 @@ Board.prototype.placeSettlement = function (player, intersectionId) {
         intersectionId: intersectionId,
         playerId: player.id
     };
-    this.settlements.push(settlement);
+    this.settlements.add(settlement);
     this.broadcast('update', {type: 'settlement', settlement: settlement});
 };
 
@@ -303,7 +322,7 @@ Board.prototype.placeRoad = function (player, edge) {
         edge: edge,
         playerId: player.id
     };
-    this.roads.push(road);
+    this.roads.add(road);
     this.broadcast('update', {type: 'road', road: road});
 };
 
@@ -312,9 +331,10 @@ Board.prototype.placeRoad = function (player, edge) {
  */
 Board.prototype.isValidSettlement = function (player, intersectionId) {
     // Check to see if this is a valid settlement location.
-    var intersectionMap = components.intersectionMap;
-    var settlements = this.settlements;
-    var intersection = intersectionMap[intersectionId];
+    var intersectionMap = components.intersectionMap,
+        settlements = this.settlements,
+        roads = this.roads.byPlayerId(player.id),
+        intersection = intersectionMap[intersectionId];
     if (!intersectionMap[intersectionId]) {
         return;
     }
@@ -336,7 +356,7 @@ Board.prototype.isValidSettlement = function (player, intersectionId) {
         return;
     }
     //     - player has a road that is connected
-    isLegal = player.roads.some(function (road) {
+    isLegal = roads.some(function (road) {
         var roadIntersectionId = road.edge[0];
         if (roadIntersectionId === intersectionId) {
             return true;
@@ -397,7 +417,7 @@ Board.prototype.initResourceLocations = function () {
         };
     }
     resourceMap[locations[18]] = {
-        type: null,
+        type: 'desert',
         value: 7
     };
 
@@ -416,7 +436,7 @@ Board.prototype.initResourceValues = function (resourceMap) {
     diceValues = utils.shuffleArray(diceValues);
     for (locationId in resourceMap) {
         if (resourceMap.hasOwnProperty(locationId)) {
-            if (resourceMap[locationId]) {
+            if (resourceMap[locationId].type !== 'desert') {
                 diceValue = diceValues.pop();
                 if (!diceMap[diceValue]) {
                     diceMap[diceValue] = [];
@@ -424,7 +444,7 @@ Board.prototype.initResourceValues = function (resourceMap) {
                 diceMap[diceValue].push(locationId);
                 resourceMap[locationId].value = diceValue;
             } else {
-                diceMap[7] = locationId;
+                diceMap[7] = [locationId];
             }
         }
     }

@@ -5,7 +5,7 @@ function Roads() {
 }
 
 Roads.prototype = {
-    addRoad: function (road) {
+    add: function (road) {
         this.roads.push(road);
     },
 
