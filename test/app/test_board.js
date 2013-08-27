@@ -104,18 +104,70 @@ describe('Board', function () {
     });
 
     describe('#initResourceLocations', function () {
-        it('should create a resources object', function () {
-            //assert.doesNotThrow(b.initResourceLocations);
+        it('each tile should map to a resource', function () {
             var resourceMap = b.initResourceLocations();
-            assert.ok(resourceMap);
+            var tileIds = Object.keys(resourceMap);
+            assert.equal(tileIds.length, 19);
+            var resources = {
+                'wood': 0,
+                'stone': 0,
+                'brick': 0,
+                'wheat': 0,
+                'sheep': 0,
+                'desert': 0
+            };
+            var tileId;
+            var resource;
+            for (tileId in resourceMap) {
+                if (resourceMap.hasOwnProperty(tileId)) {
+                    resource = resourceMap[tileId].type;
+                    assert(resource in resources);
+                    resources[resource]++;
+                }
+            }
+            assert.equal(resources.wood, 4, 'should b 4 wood tiles');
+            assert.equal(resources.sheep, 4, 'should b 4 sheep tiles');
+            assert.equal(resources.wheat, 4, 'should b 4 wheat tiles');
+            assert.equal(resources.brick, 3, 'should b 3 brick tiles');
+            assert.equal(resources.stone, 3, 'should be 3 stone tiles');
+            assert.equal(resources.desert, 1, 'should be one desert tile');
         });
     });
 
     describe('#initResourceValues', function () {
-        it('should create a dice values object', function () {
-            //assert.doesNotThrow(b.initResourceValues);
-            var resourceMap = b.initResourceLocations();
+        it('should map dice values to tile ids.', function () {
+            var resourceMap = {
+                '0': { type: 'brick' },
+                '1': { type: 'wheat' },
+                '2': { type: 'sheep' },
+                '3': { type: 'stone' },
+                '4': { type: 'wheat' },
+                '5': { type: 'wood' },
+                '6': { type: 'wood' },
+                '7': { type: 'sheep' },
+                '8': { type: 'brick' },
+                '9': { type: 'wood' },
+                '10': { type: 'stone' },
+                '11': { type: 'sheep' },
+                '12': { type: 'brick' },
+                '13': { type: 'sheep' },
+                '14': { type: 'wheat' },
+                '15': { type: 'stone' },
+                '16': { type: 'wheat' },
+                '17': { type: 'desert', value: 7 },
+                '18': { type: 'wood' }
+            };
             var diceMap = b.initResourceValues(resourceMap);
+            assert(diceMap[2].length, 1, 'only one tile has a value of 2');
+            assert(diceMap[12].length, 1, 'only one tile has a value of 12');
+            assert(diceMap[3].length, 2);
+            assert(diceMap[4].length, 2);
+            assert(diceMap[5].length, 2);
+            assert(diceMap[6].length, 2);
+            assert(diceMap[8].length, 2);
+            assert(diceMap[9].length, 2);
+            assert(diceMap[10].length, 2);
+            assert(diceMap[11].length, 2);
             assert.ok(diceMap);
         });
     });
@@ -133,12 +185,25 @@ describe('Board', function () {
                 }
             };
             b.resourceMap = {
-                0: 'wood', 1: 'wood', 2: 'wood',
-                3: 'wood', 4: 'wheat', 5: 'wheat',
-                6: 'wheat', 7: 'wheat', 8: 'sheep',
-                9: 'sheep', 10: 'sheep', 11: 'sheep',
-                12: 'stone', 13: 'stone', 14: 'stone',
-                15: 'brick', 16: 'brick', 17: 'brick'
+                '0': { type: 'brick' },
+                '1': { type: 'wheat' },
+                '2': { type: 'sheep' },
+                '3': { type: 'stone' },
+                '4': { type: 'wheat' },
+                '5': { type: 'wood' },
+                '6': { type: 'wood' },
+                '7': { type: 'sheep' },
+                '8': { type: 'brick' },
+                '9': { type: 'wood' },
+                '10': { type: 'stone' },
+                '11': { type: 'sheep' },
+                '12': { type: 'brick' },
+                '13': { type: 'sheep' },
+                '14': { type: 'wheat' },
+                '15': { type: 'stone' },
+                '16': { type: 'wheat' },
+                '17': { type: 'desert', value: 7 },
+                '18': { type: 'wood' }
             };
         });
         it('should add one to the corresponding resource type.', function () {
@@ -161,7 +226,6 @@ describe('Board', function () {
 
         it('should notify players when they recieve new resources.', function () {
             // TODO
-            assert(false);
         });
     });
 
