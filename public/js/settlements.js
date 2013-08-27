@@ -1,18 +1,4 @@
-define(['utils'], function (utils) {
-    var Settlement = Backbone.Model;
+module.exports = Settlements;
 
-    var Settlements = Backbone.Collection.extend({
-        model: Settlement,
-
-        byPlayerId: function (id) {
-            return this.where({
-                playerId: id
-            });
-        }
-    });
-
-    return {
-        model: Settlement,
-        collection: Settlements
-    };
-});
+function Settlements() {
+}
