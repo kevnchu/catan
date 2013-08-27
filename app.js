@@ -1,12 +1,12 @@
-// node dependencies
 var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
     path = require('path'),
+    fs = require('fs'),
+    browserify = require('browserify'),
     baseDir = __dirname + '/public';
 
-// Application dependencies.
 var Board = require('./app/board').Board,
     Player = require('./app/player').Player,
     utils = require('./app/utils');
@@ -17,6 +17,10 @@ var boards = {};
 server.listen(8787);
 
 app.configure(function () {
+    var output = fs.createWriteStream(baseDir + '/bundle.js');
+    var b = browserify();
+    b.add(baseDir + '/js/soc.js');
+    b.bundle().pipe(output);
     app.use(app.router);
     app.use(express.static(baseDir));
 });
@@ -31,7 +35,7 @@ var handleConnection = function (socket) {
 
     socket.on('adduser', function (name) {
         player = new Player(name, socket);
-        socket.emit('adduser', player.id);
+        socket.emit('adduser', player.serialize());
     });
 
     // add to existing game or create new one.
