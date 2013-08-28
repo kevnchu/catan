@@ -1,7 +1,3 @@
-var utils = require('./utils'),
-    HexLayout = require('./hex_layout'),
-    components = require('./components');
-
 module.exports = {
     drawResourceKey: drawResourceKey,
     drawResources: drawResources,
@@ -10,7 +6,10 @@ module.exports = {
     drawSettlement: drawSettlement
 };
 
-var svgNS = 'http://www.w3.org/2000/svg',
+var utils = require('./utils'),
+    HexLayout = require('./hex_layout'),
+    components = require('./components'),
+    svgNS = 'http://www.w3.org/2000/svg',
     catanNS = 'catan',
     robber,
     playerMap,
