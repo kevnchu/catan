@@ -9,7 +9,100 @@ var view = require('./view'),
     buildControls = $('#build-controls'),
     rollControls = $('#roll-controls'),
     tradeControls = $('#trade-controls'),
-    submitButton = $('#submit-button');
+    submitButton = $('#submit-button'),
+    board,
+    player,
+    socket;
+
+socket = io.connect(window.location.href);
+
+socket.on('connect', function () {
+    socket.emit('adduser', prompt("What's your name?"));
+
+    $('#create-button').on('click', function () {
+        socket.emit('createboard');
+    });
+
+    $('#join-button').on('click', function () {
+        var boardId = prompt('Enter game id');
+        socket.emit('joinboard', boardId);
+    });
+});
+
+socket.on('adduser', function (_player) {
+    player = _player;
+});
+
+socket.on('sendchat', function (data) {
+    var line = document.createElement('div');
+    var msg = document.createElement('span');
+    var name = document.createElement('span');
+    name.innerHTML = data.name + ': ';
+    msg.innerHTML = data.msg;
+    line.appendChild(name);
+    line.appendChild(msg);
+    chatBox.append(line);
+});
+
+socket.on('updateresources', function (resources) {
+    player.resources = resources;
+    view.drawResources(resources);
+    console.log('player resources', resources);
+});
+socket.on('startturn', function () {
+    console.log('starting your turn');
+    // enable controls.
+});
+socket.on('endturn', function () {
+    console.log('your turn is now over');
+    // disable controls.
+});
+socket.on('action', function (type) {
+    var controlMap = {
+        roll: roll
+    };
+    controlMap[type]();
+});
+socket.on('message', function (data) {
+    alert(data.msg);
+});
+socket.on('setup', setup);
+socket.on('roll', roll);
+socket.on('update', updateBoard);
+socket.on('choosesettlement', selectSettlementLocation);
+socket.on('chooseroad', selectRoad);
+
+chatInput.on('keypress', function (e) {
+    if (e.which === 13) {
+        sendChat();
+    }
+});
+
+chatButton.on('click', sendChat);
+
+function setup(boardData) {
+    var tileDiceValueMap = {},
+        diceMap = boardData.diceMap,
+        diceValue,
+        tiles,
+        i;
+
+    for (diceValue in diceMap) {
+        if (diceMap.hasOwnProperty(diceValue)) {
+            tiles = diceMap[diceValue];
+            for (i = 0; i < tiles.length; i++) {
+                tileDiceValueMap[tiles[i]] = diceValue;
+            }
+        }
+    }
+    boardData.tileDiceValueMap = tileDiceValueMap;
+
+    $('#board-container').removeClass('hidden');
+    board = new Board(boardData);
+
+    view.drawBoard(boardData, {size: 60});
+    view.drawResourceKey();
+}
 
 function registerControls(controls) {
     // maps button ids to functions
@@ -36,115 +129,12 @@ function registerControls(controls) {
     });
 }
 
-registerControls(actionControls);
-registerControls(buildControls);
-
-var board;
-var player;
-
-function setup(boardData) {
-    var tileDiceValueMap = {},
-        diceMap = boardData.diceMap,
-        diceValue,
-        tiles,
-        i;
-
-    for (diceValue in diceMap) {
-        if (diceMap.hasOwnProperty(diceValue)) {
-            tiles = diceMap[diceValue];
-            for (i = 0; i < tiles.length; i++) {
-                tileDiceValueMap[tiles[i]] = diceValue;
-            }
-        }
-    }
-    boardData.tileDiceValueMap = tileDiceValueMap;
-
-    $('#board-container').removeClass('hidden');
-    board = new Board(boardData);
-
-    view.drawBoard(boardData, {size: 60});
-    view.drawResourceKey();
-}
-
-var socket = io.connect(window.location.href);
-
-socket.on('connect', function () {
-    socket.emit('adduser', prompt("What's your name?"));
-
-    // join or create new game
-    $('#create-button').on('click', function () {
-        socket.emit('createboard');
-    });
-
-    $('#join-button').on('click', function () {
-        var boardId = prompt('Enter game id');
-        socket.emit('joinboard', boardId);
-    });
-});
-
-socket.on('adduser', function (_player) {
-    player = _player;
-});
-
-// chat
-socket.on('sendchat', function (data) {
-    var line = document.createElement('div');
-    var msg = document.createElement('span');
-    var name = document.createElement('span');
-    name.innerHTML = data.name + ': ';
-    msg.innerHTML = data.msg;
-    line.appendChild(name);
-    line.appendChild(msg);
-    chatBox.append(line);
-});
-
-chatInput.on('keypress', function (e) {
-    if (e.which === 13) {
-        sendChat();
-    }
-});
-
-chatButton.on('click', sendChat);
-
 function sendChat() {
     var msg = chatInput[0].value;
     chatInput[0].value = '';
     if (msg)
         socket.send(msg);
 }
-
-socket.on('updateresources', function (resources) {
-    player.resources = resources;
-    view.drawResources(resources);
-    console.log('player resources', resources);
-});
-
-socket.on('startturn', function () {
-    console.log('starting your turn');
-    // enable controls.
-});
-
-socket.on('endturn', function () {
-    console.log('your turn is now over');
-    // disable controls.
-});
-
-socket.on('action', function (type) {
-    var controlMap = {
-        roll: roll
-    };
-    controlMap[type]();
-});
-
-socket.on('message', function (data) {
-    alert(data.msg);
-});
-
-socket.on('setup', setup);
-socket.on('roll', roll);
-socket.on('update', updateBoard);
-socket.on('choosesettlement', selectSettlementLocation);
-socket.on('chooseroad', selectRoad);
 
 function roll() {
     alert('roll the dice.');
@@ -226,3 +216,6 @@ function buildCity() {
     var message = $('<p>').text('Choose a settlement to upgrade.');
     $('#options-container').append(message);
 }
+
+registerControls(actionControls);
+registerControls(buildControls);
