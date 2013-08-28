@@ -25,8 +25,8 @@ function Board() {
     
     // TODO change settlements and roads to be instances of
     // setttlements and roads classes.
-    this.settlements = [];
-    this.roads = [];
+    this.settlements = new Settlements();
+    this.roads = new Roads();
 
     this.players = new Players();
 }
@@ -159,7 +159,7 @@ Board.prototype.chooseCity = function (player) {
 };
 
 // currently depends on already having a starting position selected.
-Board.prototype.chooseRoad = function (player, start) {
+Board.prototype.chooseRoad = function (player) {
     var self = this,
         deferred = Q.defer();
     player.socket.emit('chooseroad');

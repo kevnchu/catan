@@ -1,4 +1,4 @@
-exports.Roads = Roads;
+module.exports = Roads;
 
 function Roads() {
     this.roads = [];

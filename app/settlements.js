@@ -1,10 +1,8 @@
-var Settlements;
+module.exports = Settlements;
 
-exports.Settlements = Settlements;
-
-Settlements = function () {
+function Settlements () {
     this.settlements = [];
-};
+}
 
 Settlements.prototype = {
     add: function (settlement) {
