@@ -1,4 +1,4 @@
-exports.Players = Players;
+module.exports = Players;
 
 var colors = ['red', 'orange', 'white', 'blue'];
 function Players() {

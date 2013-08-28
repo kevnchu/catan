@@ -1,15 +1,12 @@
-var EventEmitter = require('events').EventEmitter,
-    Q = require('q');
+module.exports = Board;
 
-var Players = require('./players').Players,
-    Player = require('./player').Player,
+var Q = require('q'),
+    Players = require('./players'),
     Settlements = require('./settlements'),
     Roads = require('./roads'),
     DevelopmentCards = require('./development_cards'),
     utils = require('./utils'),
     components = require('./components');
-
-exports.Board = Board;
 
 function Board() {
     this.id = utils.createUniqueId();
@@ -23,11 +20,8 @@ function Board() {
       sheep: [-5,-6]
     };
     
-    // TODO change settlements and roads to be instances of
-    // setttlements and roads classes.
     this.settlements = new Settlements();
     this.roads = new Roads();
-
     this.players = new Players();
 }
 

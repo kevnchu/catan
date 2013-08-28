@@ -1,4 +1,4 @@
-exports.Player = Player;
+module.exports = Player;
 
 var createUniqueId = require('./utils').createUniqueId;
 
