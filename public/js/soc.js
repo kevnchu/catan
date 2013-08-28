@@ -7,7 +7,6 @@ var view = require('./view'),
     controls = $('#action-container'),
     actionControls = $('#action-controls'),
     buildControls = $('#build-controls'),
-    rollControls = $('#roll-controls'),
     tradeControls = $('#trade-controls'),
     submitButton = $('#submit-button'),
     board,
@@ -138,10 +137,12 @@ function sendChat() {
 }
 
 function roll() {
+    var rollControls = $('#roll-controls');
     alert('roll the dice.');
     rollControls.removeClass('hidden');
     rollControls.on('click', function (e) {
         socket.emit('roll');
+        rollControls.addClass('hidden');
     });
 }
 
