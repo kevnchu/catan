@@ -111,9 +111,6 @@ function registerControls(controls) {
         //trade: trade,
         //devcard: devcard,
         //end: endTurn,
-        'build-settlement': buildSettlement,
-        'build-road': buildRoad
-        //'build-city': buildCity,
         //'build-devcard': buildDevCard
     };
     $('button', controls).each(function (i, button) {
@@ -151,9 +148,6 @@ function build(e) {
 }
 
 function updateBoard(data) {
-    // update board model.
-    
-    // update view
     switch (data.type) {
         case 'settlement':
             board.addSettlement(data.settlement);
@@ -201,22 +195,6 @@ function selectRoad() {
                 pubsubz.unsubscribe(token);
             }
         });
-}
-
-function buildSettlement() {
-    var message = $('<p>').text('Choose your settlement intersection.');
-    $('#options-container').append(message);
-    // listen to click location.       
-}
-
-function buildRoad() {
-    var message = $('<p>').text('Choose your road start and end intersections.');
-    $('#options-container').append(message);
-}
-
-function buildCity() {
-    var message = $('<p>').text('Choose a settlement to upgrade.');
-    $('#options-container').append(message);
 }
 
 registerControls(actionControls);

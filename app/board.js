@@ -42,37 +42,35 @@ Board.prototype.addUser = function (player) {
 
 Board.prototype.removeUser = function (id) {
     var player = this.players.getPlayer(id);
-    console.log(player.name, 'has left the game');
+    this.notify(player.name + ' has left the game');
     this.players.removePlayer(id);
 };
 
 Board.prototype.initialize = function () {
-    // create new random board.
-    var boardData,
-        resourceMap = this.initResourceLocations(),
-        diceMap = this.initResourceValues(resourceMap);
+    var resourceMap = this.resourceMap = this.initResourceLocations(),
+        diceMap = this.diceMap = this.initResourceValues(resourceMap),
+        boardData = {
+            resourceMap: resourceMap,
+            diceMap: diceMap,
+            playerMap: this.players.getSerializablePlayerMap()
+        };
 
-    this.resourceMap = resourceMap;
-    this.diceMap = diceMap;
-
-    boardData = {
-        resourceMap: resourceMap,
-        diceMap: diceMap,
-        playerMap: this.players.getSerializablePlayerMap()
-    };
     this.broadcast('setup', boardData);
-    
-    // start game
-    this.firstRoll();
+    this.firstRoll()
+        .then(this.setup.bind(this))
+        .then(function () {
+            console.log('start game');
+        });
 };
 
 /**
- * figure out who is going first.
+ * determine which player is going first.
  */
 Board.prototype.firstRoll = function () {
     var self = this,
         players = this.players,
         playerCount = players.count(),
+        deferred = Q.defer(),
         count = 0,
         max = 0,
         id;
@@ -86,18 +84,17 @@ Board.prototype.firstRoll = function () {
                     max = diceValue;
                 }
                 if (++count < playerCount) {
-                    console.log('count:', count, 'out of:', playerCount);
                     players.next();
                     rollHelper();
                 } else {
-                    console.log(players.getPlayer(id).name, 'goes first.');
                     players.setCurrent(id);
-                    self.setup();
+                    deferred.resolve();
                 }
             });
     }
 
     rollHelper();
+    return deferred.promise;
 };
 
 Board.prototype.setup = function () {
@@ -105,6 +102,7 @@ Board.prototype.setup = function () {
         self = this,
         resourceMap = self.resourceMap,
         playerCount = players.count(),
+        deferred = Q.defer(),
         count = 0;
 
     function setupHelper() {
@@ -136,11 +134,14 @@ Board.prototype.setup = function () {
                     players.previous();
                 }
                 setupHelper();
+            } else {
+                deferred.resolve();
             }
         });
     }
 
     setupHelper();
+    return deferred.promise;
 };
 
 Board.prototype.roll = function (player) {
@@ -164,7 +165,6 @@ Board.prototype.chooseSettlement = function (player) {
         deferred = Q.defer();
     player.socket.emit('choosesettlement');
     player.socket.once('choosesettlement', function (intersectionId) {
-        console.log('placing settlement at', intersectionId);
         self.placeSettlement(player, intersectionId);
         deferred.resolve({player: player, intersectionId: intersectionId});
     });
@@ -181,7 +181,6 @@ Board.prototype.chooseRoad = function (player) {
         deferred = Q.defer();
     player.socket.emit('chooseroad');
     player.socket.once('chooseroad', function (edge) {
-        console.log('placing road at', edge[0], edge[1]);
         self.placeRoad(player, edge);
         deferred.resolve({player: player, edge: edge});
     });
