@@ -97,11 +97,14 @@ function drawResourceKey() {
 }
 
 function drawResources(resources) {
+    var resourcesContainer = $('#resources-container'),
+        template = $('#resources-template').html(),
+        html = _.template(template, { resources: resources });
+    resourcesContainer.html(html);
 }
 
 function drawIntersections(board, intersections) {
     var target = document.createElementNS(svgNS, 'circle'),
-        //coords = intersections.map(function (x) { return x.p; }),
         intersection,
         p,
         i;

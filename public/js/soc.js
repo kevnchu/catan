@@ -101,6 +101,7 @@ function setup(boardData) {
 
     view.drawBoard(boardData, {size: 60});
     view.drawResourceKey();
+    view.drawResources(player.resources);
 }
 
 function registerControls(controls) {
