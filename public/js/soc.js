@@ -1,29 +1,7 @@
-/*
-var socket = io.connect(window.location.href);
-
-// should this be moved into the require function?
-$(document).ready(function () {
-    socket.on('connect', function () {
-        socket.emit('adduser', prompt("What's your name?"));
-
-        // join or create new game
-        $('#create-button').on('click', function () {
-            socket.emit('createboard');
-        });
-
-        $('#join-button').on('click', function () {
-            var boardId = prompt('Enter game id');
-            socket.emit('joinboard', boardId);
-        });
-    });
-});
-*/
-
 var view = require('./view'),
     Board = require('./board'),
-    utils = require('./utils');
-
-var chatInput = $('#chat-input'),
+    utils = require('./utils'),
+    chatInput = $('#chat-input'),
     chatBox = $('#chat-log'),
     chatButton = $('#chat-button'),
     controls = $('#action-container'),
@@ -61,7 +39,7 @@ function registerControls(controls) {
 registerControls(actionControls);
 registerControls(buildControls);
 
-var board = new Board();
+var board;
 var player;
 
 function setup(boardData) {
@@ -82,7 +60,7 @@ function setup(boardData) {
     boardData.tileDiceValueMap = tileDiceValueMap;
 
     $('#board-container').removeClass('hidden');
-    board.init(boardData);
+    board = new Board(boardData);
 
     view.drawBoard(boardData, {size: 60});
     view.drawResourceKey();

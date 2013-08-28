@@ -7,41 +7,16 @@ module.exports = Board;
 
 var intersectionMap = components.intersectionMap;
 
-/*
-var BoardModel = Backbone.Model.extend({
-    initialize: function(settlements, roads) {
-        this.settlements = settlements;
-        this.roads = roads;
-        this.listenTo(settlements, 'add', this.addSettlement);
-        this.listenTo(roads, 'add', this.addRoad);
-    },
-
-    addRoad: function (road) {
-        this.trigger('addRoad', road.attributes);
-    },
-
-    addSettlement: function(settlement) {
-        this.trigger('addSettlement', settlement.attributes);
-    },
-
-    addAll: function() {
-        settlements.each(this.addSettlement, this);
-        roads.each(this.addRoad, this);
-    }
-});
-*/
-
-function Board() {
-    var me = this;
-    var settlements = this.settlements = new Settlements();
-    var roads = this.roads = new Roads();
-}
-
-Board.prototype.init = function (boardData) {
+function Board(boardData) {
+    this.settlements = new Settlements();
+    this.roads = new Roads();
     this.resourceMap = boardData.resourceMap;
     this.diceMap = boardData.diceMap;
     this.tileDiceValueMap = boardData.tileDiceValueMap;
     this.playerMap = boardData.playerMap;
+}
+
+Board.prototype.init = function (boardData) {
 };
 
 Board.prototype.longestRoad = function () {
@@ -50,10 +25,10 @@ Board.prototype.longestRoad = function () {
 };
 
 Board.prototype.isValidSettlement = function (player, settlementIntersection) {
-    var intersections = intersectionMap;
-    var settlements = this.settlements;
-    var settlementIntersectionId = utils.getIntersectionId(settlementIntersection);
-    // Check to see if this is a valid settlement intersection.
+    var intersections = intersectionMap,
+        settlements = this.settlements,
+        settlementIntersectionId = utils.getIntersectionId(settlementIntersection);
+
     if (!intersections[settlementIntersectionId]) {
         return;
     }
