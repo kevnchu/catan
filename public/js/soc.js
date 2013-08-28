@@ -34,9 +34,9 @@ socket.on('adduser', function (_player) {
 });
 
 socket.on('sendchat', function (data) {
-    var line = document.createElement('div');
-    var msg = document.createElement('span');
-    var name = document.createElement('span');
+    var line = document.createElement('div'),
+        msg = document.createElement('span'),
+        name = document.createElement('span');
     name.innerHTML = data.name + ': ';
     msg.innerHTML = data.msg;
     line.appendChild(name);
@@ -47,7 +47,6 @@ socket.on('sendchat', function (data) {
 socket.on('updateresources', function (resources) {
     player.resources = resources;
     view.drawResources(resources);
-    console.log('player resources', resources);
 });
 socket.on('startturn', function () {
     console.log('starting your turn');
@@ -118,11 +117,12 @@ function registerControls(controls) {
         //'build-devcard': buildDevCard
     };
     $('button', controls).each(function (i, button) {
+        var buttonId,
+            action;
         button = $(button);
-        var buttonId = button.attr('id');
-        buttonId = buttonId.split('-');
+        buttonId = button.attr('id').split('-');
         buttonId.pop();
-        var action = actionMap[buttonId.join('-')];
+        action = actionMap[buttonId.join('-')];
         button.on('click', function () {
             action.call(this);
         });
@@ -184,21 +184,21 @@ function selectSettlementLocation() {
 
 function selectRoad() {
     alert('choose road.');
-    var edge = [];
-    var token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
-        var road;
-        edge.push(intersectionId);
-        alert(intersectionId);
-        if (edge.length === 2) {
-            road = {
-                playerId: player.id,
-                edge: edge
-            };
-            view.drawRoad(road);
-            socket.emit('chooseroad', edge);
-            pubsubz.unsubscribe(token);
-        }
-    });
+    var edge = [],
+        token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
+            var road;
+            edge.push(intersectionId);
+            alert(intersectionId);
+            if (edge.length === 2) {
+                road = {
+                    playerId: player.id,
+                    edge: edge
+                };
+                view.drawRoad(road);
+                socket.emit('chooseroad', edge);
+                pubsubz.unsubscribe(token);
+            }
+        });
 }
 
 function buildSettlement() {

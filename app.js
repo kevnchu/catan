@@ -5,20 +5,17 @@ var express = require('express'),
     path = require('path'),
     fs = require('fs'),
     browserify = require('browserify'),
-    baseDir = __dirname + '/public';
-
-var Board = require('./app/board').Board,
+    Board = require('./app/board').Board,
     Player = require('./app/player').Player,
-    utils = require('./app/utils');
-
-
-var boards = {};
+    utils = require('./app/utils'),
+    baseDir = __dirname + '/public',
+    boards = {};
 
 server.listen(8787);
 
 app.configure(function () {
-    var output = fs.createWriteStream(baseDir + '/bundle.js');
-    var b = browserify();
+    var output = fs.createWriteStream(baseDir + '/bundle.js'),
+        b = browserify();
     b.add(baseDir + '/js/soc.js');
     b.bundle().pipe(output);
     app.use(app.router);
@@ -81,42 +78,3 @@ var handleConnection = function (socket) {
 };
 
 io.sockets.on('connection', handleConnection);
-
-/*
-io.sockets.on('connection', function (socket) {
-    var uid,
-        name;
-    socket.on('adduser', function (data) {
-        name = data;
-        if (name) {
-            uid = utils.createUniqueId();
-            console.log('add new user:', name);
-            // Not sure if this is good practice to pass in socket.
-            board.addUser({playerId: uid, name: name, socket: socket});
-        }
-    });
-    socket.on('message', function (message, callback) {
-        console.log('LOG:', name, ':', message);
-        // Propagate message to all clients.
-        io.sockets.emit('sendchat', {name: name, msg: message});
-    });
-    socket.on('disconnect', function () {
-        if (uid) {
-            console.log('LOG: Disconnect by user');
-            board.removeUser(uid);
-        }
-    });
-});
-
-board.on('setup', function (boardData) {
-    io.sockets.emit('setup', boardData);
-});
-
-board.on('ready', function () {
-    io.sockets.emit('ready');
-});
-
-board.on('notify', function (msg) {
-    io.sockets.emit('sendchat', {name: '*** server ***', msg: msg});
-});
-*/

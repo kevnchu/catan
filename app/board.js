@@ -103,18 +103,36 @@ Board.prototype.firstRoll = function () {
 Board.prototype.setup = function () {
     var players = this.players,
         self = this,
+        resourceMap = self.resourceMap,
         playerCount = players.count(),
         count = 0;
 
     function setupHelper() {
         var player = players.getCurrent();
         self.chooseSettlement(player)
+        .then(function (data) {
+            var intersectionId = data.intersectionId,
+                tileIds,
+                resource,
+                i;
+            if (count >= playerCount) {
+                tileIds = utils.getTileIdsFromIntersectionId(intersectionId);
+                for (i = 0; i < tileIds.length; i++) {
+                    resource = resourceMap[tileIds[i]].type;
+                    if (resource !== 'desert')
+                        player.resources[resource]++;
+                }
+                self.updateResources(player);               
+            }
+            return player;
+        })
         .then(self.chooseRoad.bind(self))
         .then(function () {
             if (++count < 2 * playerCount) {
                 if (count < playerCount) {
                     players.next();
                 } else if (count > playerCount) {
+                    // give player resources.
                     players.previous();
                 }
                 setupHelper();
@@ -126,14 +144,13 @@ Board.prototype.setup = function () {
 };
 
 Board.prototype.roll = function (player) {
-    // return a promise. when we receive client message, resolve promise
+    // return a promise. when we receive client response, resolve promise
     var self = this,
         rollDice = self.rollDice,
         deferred = Q.defer();
     player.socket.emit('roll');
     player.socket.once('roll', function () {
         var diceValue = rollDice();
-        // broadcast dice value to everyone.
         self.notify(player.name + ' rolled ' + diceValue);
         deferred.resolve(diceValue, player.id);
     });
@@ -142,14 +159,14 @@ Board.prototype.roll = function (player) {
 };
 
 Board.prototype.chooseSettlement = function (player) {
-    // return a promise. when we receive client message, resolve promise
+    // return a promise. when we receive client response, resolve promise
     var self = this,
         deferred = Q.defer();
     player.socket.emit('choosesettlement');
     player.socket.once('choosesettlement', function (intersectionId) {
         console.log('placing settlement at', intersectionId);
         self.placeSettlement(player, intersectionId);
-        deferred.resolve(player);
+        deferred.resolve({player: player, intersectionId: intersectionId});
     });
 
     return deferred.promise;
@@ -158,7 +175,7 @@ Board.prototype.chooseSettlement = function (player) {
 Board.prototype.chooseCity = function (player) {
 };
 
-// currently depends on already having a starting position selected.
+// need to validate.
 Board.prototype.chooseRoad = function (player) {
     var self = this,
         deferred = Q.defer();
@@ -166,7 +183,7 @@ Board.prototype.chooseRoad = function (player) {
     player.socket.once('chooseroad', function (edge) {
         console.log('placing road at', edge[0], edge[1]);
         self.placeRoad(player, edge);
-        deferred.resolve(player);
+        deferred.resolve({player: player, edge: edge});
     });
     return deferred.promise;
 };
@@ -195,11 +212,14 @@ Board.prototype.distributeResources = function (tileId) {
             }
         }
     }
-    // TODO notify players in update queue
     for (i = 0; i < updateQueue.length; i++) {
         player = self.players.getPlayer(updateQueue[i]);
-        player.socket.emit('updateresources', player.resources);
+        self.updateResources(player);
     }
+};
+
+Board.prototype.updateResources = function (player) {
+    player.socket.emit('updateresources', player.resources);
 };
 
 function trade(data) {
@@ -315,6 +335,7 @@ Board.prototype.placeSettlement = function (player, intersectionId) {
     };
     this.settlements.add(settlement);
     this.broadcast('update', {type: 'settlement', settlement: settlement});
+    return settlement;
 };
 
 Board.prototype.placeRoad = function (player, edge) {
@@ -324,6 +345,7 @@ Board.prototype.placeRoad = function (player, edge) {
     };
     this.roads.add(road);
     this.broadcast('update', {type: 'road', road: road});
+    return road;
 };
 
 /**
