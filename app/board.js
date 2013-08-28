@@ -12,12 +12,12 @@ function Board() {
     this.id = utils.createUniqueId();
 
     this.harbor_interSections = {
-      stone: [-29,-30],
-      wheat: [-25,-26],
-      mystery: [-23,-22,-12,-13,-9,-10,-2,-3],
-      wood: [-20,-19],
-      brick: [-15,-16],
-      sheep: [-5,-6]
+        stone: [-29,-30],
+        wheat: [-25,-26],
+        mystery: [-23,-22,-12,-13,-9,-10,-2,-3],
+        wood: [-20,-19],
+        brick: [-15,-16],
+        sheep: [-5,-6]
     };
     
     this.settlements = new Settlements();
@@ -229,15 +229,6 @@ function build(data) {
 }
 
 function devcard(data) {
-    var devCardMap = {
-        knight: knight,
-        road_building: roadBuilding,
-        monopoly: monopoly,
-        year_of_plenty: yearOfPlenty,
-        victory_point: function () {
-            // add victory point.
-        }
-    };
 }
 
 var addListeners = function (player) {
