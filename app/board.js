@@ -41,19 +41,22 @@ Board.prototype.removeUser = function (id) {
 };
 
 Board.prototype.initialize = function () {
-    var resourceMap = this.resourceMap = this.initResourceLocations(),
-        diceMap = this.diceMap = this.initResourceValues(resourceMap),
+    var self = this,
+        players = self.players,
+        resourceMap = self.resourceMap = self.initResourceLocations(),
+        diceMap = self.diceMap = self.initResourceValues(resourceMap),
         boardData = {
             resourceMap: resourceMap,
             diceMap: diceMap,
-            playerMap: this.players.getSerializablePlayerMap()
+            playerMap: players.getSerializablePlayerMap()
         };
 
-    this.broadcast('setup', boardData);
-    this.firstRoll()
-        .then(this.setup.bind(this))
+    self.broadcast('setup', boardData);
+    self.firstRoll()
+        .then(self.setup.bind(self))
         .then(function () {
-            console.log('start game');
+            players.reset();
+            self.nextTurn();
         });
 };
 
@@ -81,7 +84,7 @@ Board.prototype.firstRoll = function () {
                     players.next();
                     rollHelper();
                 } else {
-                    players.setCurrent(id);
+                    players.setStartPlayer(id);
                     deferred.resolve();
                 }
             });
@@ -231,31 +234,34 @@ function build(data) {
 function devcard(data) {
 }
 
-var addListeners = function (player) {
+function startTurn (player) {
     var socket = player.socket;
     socket.on('trade', trade);
     socket.on('build', build);
     socket.on('devcard', devcard);
-};
+}
 
-var removeListeners = function (player) {
+function endTurn (player) {
     var socket = player.socket;
     socket.removeAllListeners('trade');
     socket.removeAllListeners('build');
     socket.removeAllListeners('devcard');
-};
+}
 
-Board.prototype.nextPlayer = function () {
+/**
+ * main game loop.
+ */
+Board.prototype.nextTurn = function () {
     var self = this,
-        players = this.players,
+        players = self.players,
         player = players.getCurrent(),
         socket = player.socket;
-    this.addListeners(socket);
-    socket.emit('action', { path: 'helpers/action.html' });
+    startTurn(player);
+    socket.emit('startturn');
     socket.once('endturn', function () {
         players.next();
-        self.removeListeners(socket);
-        self.nextPlayer();
+        endTurn(player);
+        self.nextTurn();
     });
 };
 
@@ -290,7 +296,6 @@ Board.prototype.buildSettlement = function (player, intersectionId) {
         sheep: 1
     };
     if (this.pay(player, cost)) {
-        // build this shit.
         this.placeSettlement(player, intersectionId);
     }
 };
@@ -301,7 +306,6 @@ Board.prototype.buildCity = function (player, intersectionId) {
         stone: 3
     };
     if (this.pay(player, cost)) {
-        // build this shit.
         this.placeSettlement(player, intersectionId);
     }
 };

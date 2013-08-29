@@ -109,7 +109,7 @@ function drawIntersections(board, intersections) {
         p,
         i;
     target.setAttribute('fill', '#ABC');
-    target.setAttribute('r', '5');
+    target.setAttribute('r', '9');
     for (i = 0; i < intersections.length; i++) {
         intersection = intersections[i];
         p = intersection.p;

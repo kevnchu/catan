@@ -48,12 +48,10 @@ socket.on('updateresources', function (resources) {
     view.drawResources(resources);
 });
 socket.on('startturn', function () {
-    console.log('starting your turn');
-    // enable controls.
+    alert('your turn');
+    actionControls.removeClass('hidden');
 });
 socket.on('endturn', function () {
-    console.log('your turn is now over');
-    // disable controls.
 });
 socket.on('action', function (type) {
     var controlMap = {
