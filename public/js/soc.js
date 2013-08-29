@@ -53,12 +53,6 @@ socket.on('startturn', function () {
 });
 socket.on('endturn', function () {
 });
-socket.on('action', function (type) {
-    var controlMap = {
-        roll: roll
-    };
-    controlMap[type]();
-});
 socket.on('message', function (data) {
     alert(data.msg);
 });

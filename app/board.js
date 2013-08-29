@@ -234,14 +234,14 @@ function build(data) {
 function devcard(data) {
 }
 
-function startTurn (player) {
+function startTurn(player) {
     var socket = player.socket;
     socket.on('trade', trade);
     socket.on('build', build);
     socket.on('devcard', devcard);
 }
 
-function endTurn (player) {
+function endTurn(player) {
     var socket = player.socket;
     socket.removeAllListeners('trade');
     socket.removeAllListeners('build');
