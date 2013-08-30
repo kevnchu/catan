@@ -218,20 +218,21 @@ Board.prototype.updateResources = function (player) {
     player.socket.emit('updateresources', player.resources);
 };
 
-function trade(data) {
-}
-
 function build(data) {
-    var buildMap = {
-        settlement: this.buildSettlement,
-        road: this.buildRoad,
-        city: this.buildCity,
-        devCard: this.buildDevCard
-    };
+    var self = this,
+        buildMap = {
+            settlement: self.buildSettlement,
+            road: self.buildRoad,
+            city: self.buildCity,
+            devCard: self.buildDevCard
+        };
     buildMap[data.type](data);
 }
 
 function devcard(data) {
+}
+
+function trade(data) {
 }
 
 function startTurn(player) {
@@ -311,9 +312,24 @@ Board.prototype.buildCity = function (player, intersectionId) {
 };
 
 Board.prototype.buildRoad = function () {
+    var cost = {
+        brick: 1,
+        wood: 1
+    };
+    if (this.pay(player, cost)) {
+        this.placeRoad(player, start, end);
+    }
 };
 
 Board.prototype.buildDevCard = function () {
+    var cost = {
+        sheep: 1,
+        stone: 1,
+        wheat: 1
+    };
+    if (this.pay(player, cost)) {
+        //this.drawDevCard(player);
+    }
 };
 
 Board.prototype.placeSettlement = function (player, intersectionId) {
