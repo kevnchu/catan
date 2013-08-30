@@ -7,7 +7,6 @@ var view = require('./view'),
     controls = $('#action-container'),
     actionControls = $('#action-controls'),
     buildControls = $('#build-controls'),
-    tradeControls = $('#trade-controls'),
     submitButton = $('#submit-button'),
     board,
     player,
@@ -100,7 +99,6 @@ function registerControls(controls) {
     var actionMap = {
         build: build,
         roll: roll,
-        //trade: trade,
         //devcard: devcard,
         //end: endTurn,
         //'build-devcard': buildDevCard
