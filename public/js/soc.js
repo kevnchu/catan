@@ -17,11 +17,11 @@ socket = io.connect(window.location.href);
 socket.on('connect', function () {
     socket.emit('adduser', prompt("What's your name?"));
 
-    $('#create-button').on('click', function () {
+    $('.create-board').on('click', function () {
         socket.emit('createboard');
     });
 
-    $('#join-button').on('click', function () {
+    $('.join-board').on('click', function () {
         var boardId = prompt('Enter game id');
         socket.emit('joinboard', boardId);
     });
@@ -95,7 +95,7 @@ function setup(boardData) {
 }
 
 function registerControls(controls) {
-    // maps button ids to functions
+    // maps buttons to click handlers
     var actionMap = {
         build: build,
         roll: roll,
@@ -124,12 +124,12 @@ function sendChat() {
 }
 
 function roll() {
-    var rollControls = $('#roll-controls');
+    var rollButton = $('button.roll');
     alert('roll the dice.');
-    rollControls.removeClass('hidden');
-    rollControls.on('click', function (e) {
+    rollButton.removeClass('hidden');
+    rollButton.on('click', function (e) {
         socket.emit('roll');
-        rollControls.addClass('hidden');
+        rollButton.addClass('hidden');
     });
 }
 

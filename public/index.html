@@ -6,8 +6,8 @@
     </head>
     <body>
         <div>
-            <button id="create-button">Create new game</button>
-            <button id="join-button">Join a game</button>
+            <button class="create-board">Create new game</button>
+            <button class="join-board">Join a game</button>
         </div>
         <div id="resources-container"></div>
             <script type="text/template" id="resources-template">
@@ -39,10 +39,7 @@
         <div id="action-container">
             <!-- include all controls and only show whats relevant. -->
 
-            <!-- Roll -->
-            <div id="roll-controls" class="hidden">
-                <button id="roll-button">Roll</button>
-            </div>
+            <button class="action roll hidden">Roll</button>
 
             <!-- Action -->
             <div id="action-controls" class="hidden">
