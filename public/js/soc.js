@@ -67,8 +67,6 @@ chatInput.on('keypress', function (e) {
     }
 });
 
-chatButton.on('click', sendChat);
-
 function setup(boardData) {
     var tileDiceValueMap = {},
         diceMap = boardData.diceMap,
@@ -94,25 +92,30 @@ function setup(boardData) {
     view.drawResources(player.resources);
 }
 
-function registerControls(controls) {
+function registerControls(context) {
     // maps buttons to click handlers
-    var actionMap = {
+    var clickHandlerMap = {
         build: build,
-        roll: roll,
-        //devcard: devcard,
-        //end: endTurn,
-        //'build-devcard': buildDevCard
+        sendChat: sendChat,
+        trade: '',
+        endTurn: '',
+        buildSettlement: '',
+        buildRoad: '',
+        buildCity: '',
+        buildDevCard: '',
+        playDevCard: ''
     };
-    $('button', controls).each(function (i, button) {
+    $('button', context).each(function (i, button) {
         var buttonId,
-            action;
+            handler;
         button = $(button);
-        buttonId = button.attr('id').split('-');
-        buttonId.pop();
-        action = actionMap[buttonId.join('-')];
-        button.on('click', function () {
-            action.call(this);
-        });
+        buttonId = button.attr('data-click');
+        handler = clickHandlerMap[buttonId];
+        if (handler) {
+            button.on('click', function () {
+                handler.call(this);
+            });
+        }
     });
 }
 
@@ -124,7 +127,7 @@ function sendChat() {
 }
 
 function roll() {
-    var rollButton = $('button.roll');
+    var rollButton = $('.roll-button');
     alert('roll the dice.');
     rollButton.removeClass('hidden');
     rollButton.on('click', function (e) {
@@ -187,5 +190,5 @@ function selectRoad() {
         });
 }
 
-registerControls(actionControls);
-registerControls(buildControls);
+registerControls($('.action-container'));
+registerControls($('.chat'));

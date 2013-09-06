@@ -97,8 +97,8 @@ function drawResourceKey() {
 }
 
 function drawResources(resources) {
-    var resourcesContainer = $('#resources-container'),
-        template = $('#resources-template').html(),
+    var resourcesContainer = $('.resources-container'),
+        template = $('.resources-template').html(),
         html = _.template(template, { resources: resources });
     resourcesContainer.html(html);
 }
