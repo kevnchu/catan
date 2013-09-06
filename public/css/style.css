@@ -4,15 +4,15 @@ body {
     */
 }
 
-#board-container {
+.board-container {
     margin: 30px;
-    float:left;
+    float: left;
     /*
     background-color: #d9eef2;
     */
 }
 
-#chat-container {
+.chat-container {
     clear: left;
     margin: 30px;
     width: 500px;
@@ -22,24 +22,24 @@ body {
     */
 }
 
-#chat-log {
+.chat-log {
     width:400px;
     height:250px;
 }
 
-#chat-controls {
+.chat-controls {
     margin: 5px;
     text-align: center;
 }
 
-#chat-input {
+.chat-input {
     height: 2em;
     width: 400px;
 }
 
-#action-container, #options-container {
+.action-container, .options-container {
     margin: 30px;
-    clear:left;
+    clear: left;
     /*
     background-color: #d9eef2;
     */

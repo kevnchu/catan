@@ -1,13 +1,13 @@
 var view = require('./view'),
     Board = require('./board'),
     utils = require('./utils'),
-    chatInput = $('#chat-input'),
-    chatBox = $('#chat-log'),
-    chatButton = $('#chat-button'),
-    controls = $('#action-container'),
-    actionControls = $('#action-controls'),
-    buildControls = $('#build-controls'),
-    submitButton = $('#submit-button'),
+    chatInput = $('.chat-input'),
+    chatBox = $('.chat-log'),
+    chatButton = $('.chat-button'),
+    controls = $('.action-container'),
+    actionControls = $('.action-controls'),
+    buildControls = $('.build-controls'),
+    submitButton = $('.submit-button'),
     board,
     player,
     socket;
@@ -86,7 +86,7 @@ function setup(boardData) {
     }
     boardData.tileDiceValueMap = tileDiceValueMap;
 
-    $('#board-container').removeClass('hidden');
+    $('.board-container').removeClass('hidden');
     board = new Board(boardData);
 
     view.drawBoard(boardData, {size: 60});

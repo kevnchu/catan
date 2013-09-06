@@ -9,8 +9,8 @@
             <button class="create-board">Create new game</button>
             <button class="join-board">Join a game</button>
         </div>
-        <div id="resources-container"></div>
-            <script type="text/template" id="resources-template">
+        <div class="resources-container"></div>
+            <script type="text/template" class="resources-template">
                 <table>
                     <tr>
                         <% for (var resource in resources) { %>
@@ -30,42 +30,42 @@
             </script>
         <div>
         <!-- Board -->
-        <div id="board-container" class="hidden">
+        <div class="board-container" class="hidden">
             <svg width="800" height="800" viewPort="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg">
             </svg>
         </div>
 
         <!-- High level controls -->
-        <div id="action-container">
+        <div class="action-container">
             <!-- include all controls and only show whats relevant. -->
 
-            <button class="action roll hidden">Roll</button>
+            <button class="roll hidden">Roll</button>
 
             <!-- Action -->
-            <div id="action-controls" class="hidden">
-                <button id="trade-button" disabled="true">Trade</button>
-                <button id="build-button">Build</button>
-                <button id="devcard-button" disabled="true">Play Development Card</button>
-                <button id="end-button">End Turn</button>
+            <div class="action-controls" class="hidden">
+                <button class="trade-button" disabled="true">Trade</button>
+                <button class="build-button">Build</button>
+                <button class="devcard-button" disabled="true">Play Development Card</button>
+                <button class="end-button">End Turn</button>
             </div>
         </div>
 
         <div>
             <!-- Building -->
-            <div id="build-controls" class="hidden">
-                <button id="build-settlement-button">Settlement</button>
-                <button id="build-road-button">Road</button>
-                <button id="build-city-button">City</button>
-                <button id="build-devcard-button">Development Card</button>
+            <div class="build-controls" class="hidden">
+                <button class="build-settlement-button">Settlement</button>
+                <button class="build-road-button">Road</button>
+                <button class="build-city-button">City</button>
+                <button class="build-devcard-button">Development Card</button>
             </div>
         </div>
 
         <!-- Chat -->
         <div class="chat">
-            <div id="chat-log"></div>
-            <div id="chat-controls">
-                <input type="text" id="chat-input" />
-                <button id="chat-button">Send</button>
+            <div class="chat-log"></div>
+            <div class="chat-controls">
+                <input type="text" class="chat-input" />
+                <button class="chat-button">Send</button>
             </div>
         </div>
         <script type="text/javascript" src="js/lib/jquery-1.9.0.js"></script>
