@@ -2,12 +2,8 @@ var view = require('./view'),
     Board = require('./board'),
     utils = require('./utils'),
     chatInput = $('.chat-input'),
-    chatBox = $('.chat-log'),
-    chatButton = $('.chat-button'),
-    controls = $('.action-container'),
     actionControls = $('.action-controls'),
     buildControls = $('.build-controls'),
-    submitButton = $('.submit-button'),
     board,
     player,
     socket;
@@ -39,7 +35,7 @@ socket.on('sendchat', function (data) {
     msg.innerHTML = data.msg;
     line.appendChild(name);
     line.appendChild(msg);
-    chatBox.append(line);
+    $('.chat-log').append(line);
 });
 
 socket.on('updateresources', function (resources) {
@@ -190,5 +186,5 @@ function selectRoad() {
         });
 }
 
-registerControls($('.action-container'));
-registerControls($('.chat'));
+registerControls($('.board-controls'));
+registerControls($('.chat-controls'));

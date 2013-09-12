@@ -35,22 +35,19 @@
             </svg>
         </div>
 
-        <!-- High level controls -->
-        <div class="action-container">
-            <!-- include all controls and only show whats relevant. -->
+        <div class="board-controls">
 
+            <!-- Roll -->
             <button class="roll-button hidden" data-click="roll">Roll</button>
 
-            <!-- Action -->
+            <!-- Actions -->
             <div class="action-controls hidden" >
-                <button class="trade-button" data-click="trade" disabled="true">Trade</button>
                 <button class="build-button" data-click="build">Build</button>
-                <button class="devcard-button" data-click="playDevCard" disabled="true">Play Development Card</button>
+                <button class="devcard-button" data-click="playDevCard">Play Development Card</button>
+                <button class="trade-button" data-click="trade">Trade</button>
                 <button class="end-button" data-click="endTurn">End Turn</button>
             </div>
-        </div>
 
-        <div>
             <!-- Building -->
             <div class="build-controls hidden">
                 <button class="build-settlement-button" data-click="buildSettlement">Settlement</button>
@@ -61,7 +58,7 @@
         </div>
 
         <!-- Chat -->
-        <div class="chat">
+        <div class="chat-container">
             <div class="chat-log"></div>
             <div class="chat-controls">
                 <input type="text" class="chat-input" />

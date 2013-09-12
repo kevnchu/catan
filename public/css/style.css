@@ -12,7 +12,7 @@ body {
     */
 }
 
-.chat {
+.chat-container {
     clear: left;
     margin: 30px;
     width: 500px;
