@@ -98,9 +98,11 @@ function drawResourceKey() {
 
 function drawResources(resources) {
     var resourcesContainer = $('.resources-container'),
-        template = $('.resources-template').html(),
-        html = _.template(template, { resources: resources });
-    resourcesContainer.html(html);
+        cells = resourcesContainer.find('td');
+    cells.each(function (i, node) {       
+        var type = node.getAttribute('data-resource');
+        node.textContent = resources[type] || 0;
+    });
 }
 
 function drawIntersections(board, intersections) {

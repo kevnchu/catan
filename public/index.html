@@ -9,39 +9,43 @@
             <button class="create-board">Create new game</button>
             <button class="join-board">Join a game</button>
         </div>
-        <div class="resources-container"></div>
-            <script type="text/template" class="resources-template">
-                <table>
-                    <tr>
-                        <% for (var resource in resources) { %>
-                            
-                            <% if (resources.hasOwnProperty(resource)) %>
-                                <th><%= resource %></th>
-                        <% } %>
-                    </tr>
-                    <tr>
-                        <% for (var resource in resources) { %>
-                            
-                            <% if (resources.hasOwnProperty(resource)) %>
-                                <td><%= resources[resource] %></td>
-                        <% } %>
-                    </tr>
-                </table>
-            </script>
-        <div>
+
         <!-- Board -->
         <div class="board-container hidden">
             <svg width="800" height="800" viewPort="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg">
             </svg>
         </div>
 
+        <div class="resources-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brick</th>
+                        <th>Sheep</th>
+                        <th>Stone</th>
+                        <th>Wheat</th>
+                        <th>Wood</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-resource="brick">0</td>
+                        <td data-resource="sheep">0</td>
+                        <td data-resource="stone">0</td>
+                        <td data-resource="wheat">0</td>
+                        <td data-resource="wood">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <div class="board-controls">
 
             <!-- Roll -->
-            <button class="roll-button hidden" data-click="roll">Roll</button>
+            <button class="roll-button inactive" data-click="roll">Roll</button>
 
             <!-- Actions -->
-            <div class="action-controls hidden" >
+            <div class="pane action-controls inactive" >
                 <button class="build-button" data-click="build">Build</button>
                 <button class="devcard-button" data-click="playDevCard">Play Development Card</button>
                 <button class="trade-button" data-click="trade">Trade</button>
@@ -49,12 +53,15 @@
             </div>
 
             <!-- Building -->
-            <div class="build-controls hidden">
+            <div class="pane build-controls hidden">
                 <button class="build-settlement-button" data-click="buildSettlement">Settlement</button>
                 <button class="build-road-button" data-click="buildRoad">Road</button>
                 <button class="build-city-button" data-click="buildCity">City</button>
                 <button class="build-devcard-button" data-click="buildDevCard">Development Card</button>
             </div>
+
+            <!-- Trading -->
+            <!-- Dev Cards -->
         </div>
 
         <!-- Chat -->
@@ -66,6 +73,7 @@
             </div>
         </div>
         <script type="text/javascript" src="js/lib/jquery-1.9.0.js"></script>
+        <script type="text/javascript" src="js/lib/lodash.js"></script>
         <script type="text/javascript" src="js/lib/pubsubz.js"></script>
         <script type="text/javascript" src="/socket.io/socket.io.js"></script>
         <script type="text/javascript" src="bundle.js"></script>

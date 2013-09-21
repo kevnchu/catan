@@ -8,60 +8,47 @@ var view = require('./view'),
     player,
     socket;
 
-socket = io.connect(window.location.href);
+function createSocket() {
+    var socket = io.connect(window.location.href);
+    initSocket(socket);
+    return socket;
+}
 
-socket.on('connect', function () {
-    socket.emit('adduser', prompt("What's your name?"));
+function initSocket(socket) {
+    var handlerMap = {
+            'adduser': initPlayer,
+            'sendchat': receiveMessage,
+            'updateresources': updateResources,
+            'startturn': startTurn,
+            'endturn': endTurn,
+            'message': alertMessage,
+            'setup': setup,
+            'roll': roll,
+            'update': updateBoard,
+            'choosesettlement': selectSettlementLocation,
+            'chooseroad': selectRoad
+        },
+        channel;
 
-    $('.create-board').on('click', function () {
-        socket.emit('createboard');
+    socket.on('connect', function () {
+        socket.emit('adduser', prompt("What's your name?"));
+
+        $('.create-board').on('click', function () {
+            socket.emit('createboard');
+        });
+
+        $('.join-board').on('click', function () {
+            var boardId = prompt('Enter game id');
+            socket.emit('joinboard', boardId);
+        });
     });
 
-    $('.join-board').on('click', function () {
-        var boardId = prompt('Enter game id');
-        socket.emit('joinboard', boardId);
-    });
-});
-
-socket.on('adduser', function (_player) {
-    player = _player;
-});
-
-socket.on('sendchat', function (data) {
-    var line = document.createElement('div'),
-        msg = document.createElement('span'),
-        name = document.createElement('span');
-    name.innerHTML = data.name + ': ';
-    msg.innerHTML = data.msg;
-    line.appendChild(name);
-    line.appendChild(msg);
-    $('.chat-log').append(line);
-});
-
-socket.on('updateresources', function (resources) {
-    player.resources = resources;
-    view.drawResources(resources);
-});
-socket.on('startturn', function () {
-    alert('your turn');
-    actionControls.removeClass('hidden');
-});
-socket.on('endturn', function () {
-});
-socket.on('message', function (data) {
-    alert(data.msg);
-});
-socket.on('setup', setup);
-socket.on('roll', roll);
-socket.on('update', updateBoard);
-socket.on('choosesettlement', selectSettlementLocation);
-socket.on('chooseroad', selectRoad);
-
-chatInput.on('keypress', function (e) {
-    if (e.which === 13) {
-        sendChat();
+    for (channel in handlerMap) {
+        if (handlerMap.hasOwnProperty(channel)) {
+            socket.on(channel, handlerMap[channel]);
+        }
     }
-});
+}
 
 function setup(boardData) {
     var tileDiceValueMap = {},
@@ -95,7 +82,7 @@ function registerControls(context) {
         sendChat: sendChat,
         trade: '',
         endTurn: '',
-        buildSettlement: '',
+        buildSettlement: buildSettlement,
         buildRoad: '',
         buildCity: '',
         buildDevCard: '',
@@ -115,11 +102,39 @@ function registerControls(context) {
     });
 }
 
+function initPlayer(_player) {
+    player = _player;
+}
+
+function startTurn() {
+    alert('Your turn');
+    actionControls.removeClass('hidden');
+}
+
+function endTurn() {
+    $('.action-controls, .build-controls').hide();
+}
+
+function alertMessage(data) {
+    alert(data.msg);
+}
+
 function sendChat() {
     var msg = chatInput[0].value;
     chatInput[0].value = '';
     if (msg)
         socket.send(msg);
+}
+
+function receiveMessage(data) {
+    var line = document.createElement('div'),
+        msg = document.createElement('span'),
+        name = document.createElement('span');
+    name.innerHTML = data.name + ': ';
+    msg.innerHTML = data.msg;
+    line.appendChild(name);
+    line.appendChild(msg);
+    $('.chat-log').append(line);
 }
 
 function roll() {
@@ -133,7 +148,12 @@ function roll() {
 }
 
 function build(e) {
-    buildControls.removeClass('hidden');
+    $('.build-controls').toggleClass('hidden');
+}
+
+function updateResources(resources) {
+    player.resources = resources;
+    view.drawResources(resources);
 }
 
 function updateBoard(data) {
@@ -150,6 +170,15 @@ function updateBoard(data) {
             board.addCity(data.city);
             view.drawCity(data.city);
             break;
+    }
+}
+
+function buildSettlement() {
+    // check to see we have enough resources.
+    var resources = player.resources;
+    if (resources.brick >= 1 && resources.sheep >= 1 && 
+        resources.wheat >= 1 && resources.wood >= 1) {
+        selectSettlementLocation();
     }
 }
 
@@ -186,5 +215,11 @@ function selectRoad() {
         });
 }
 
+socket = createSocket();
 registerControls($('.board-controls'));
 registerControls($('.chat-controls'));
+chatInput.on('keypress', function (e) {
+    if (e.which === 13) {
+        sendChat();
+    }
+});

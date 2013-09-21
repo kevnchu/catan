@@ -1,5 +1,4 @@
 module.exports = {
-
     getIntersectionId: function (intersection) {
         return intersection.slice().sort(function (a, b) {
             return a - b;

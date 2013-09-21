@@ -81,20 +81,20 @@ HexLayout.prototype.getIntersectionCoordinates = function () {
  */
 HexLayout.prototype.getIntersectionCoordinatesById = function (intersectionId) {
     var tileIds = utils.getTileIdsFromIntersectionId(intersectionId),
-        adjacent = adjacencyMap[tileIds[0]],
+        adjacent = adjacencyMap[tileIds[2]],
         p1,
         p2;
-    p1 = adjacent.indexOf(tileIds[1]);
-    p2 = adjacent.indexOf(tileIds[2]);
+    p1 = adjacent.indexOf(tileIds[0]);
+    p2 = adjacent.indexOf(tileIds[1]);
     // make sure that tiles are adjacent to tileIds[0]
     if (p1 >= 0 && p2 >= 0) {
         // make sure that tileIds[1] and tileIds[2] are adjacent to each other
         if (Math.abs(p1 - p2) === 1) {
-            return intersectionCoordinateMap[tileIds[0]][Math.max(p1, p2)].p;
+            return intersectionCoordinateMap[tileIds[2]][Math.max(p1, p2)].p;
         }
         // special case
         if (Math.abs(p1 - p2) === 5) {
-            return intersectionCoordinateMap[tileIds[0]][0].p;
+            return intersectionCoordinateMap[tileIds[2]][0].p;
         }
     }
 };

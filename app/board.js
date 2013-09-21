@@ -257,7 +257,7 @@ Board.prototype.nextTurn = function () {
 };
 
 Board.prototype.pay = function (player, price) {
-    var resources = player.resource,
+    var resources = player.resources,
         resource,
         quantity;
     // determine if player has sufficient resources
