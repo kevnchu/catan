@@ -6,13 +6,10 @@
     "type": "git",
     "url": "git://github.com/kevnchu/catan.git"
   },
-  "author": {
-    "name": "Kevin Chu",
-    "email": "kevnchu@gmail.com"
-  },
+  "author": "Kevin Chu <kevnchu@gmail.com>",
   "dependencies": {
     "express": "3.1.x",
-    "underscore": "1.4.x",
+    "lodash": "2.1.x",
     "browserify": "2.29.x",
     "socket.io": "0.9.x",
     "q": "0.9.x"
@@ -20,5 +17,16 @@
   "devDependencies": {
     "mocha": "1.8.x",
     "sinon": "1.7.3"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/kevnchu/catan/issues"
+  },
+  "main": "app.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "license": "BSD-2-Clause"
 }
