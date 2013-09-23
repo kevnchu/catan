@@ -24,7 +24,7 @@ Settlements.prototype = {
     each: function (fn) {
         var settlements = this.settlements,
             i;
-        for (i = 0; i < settlements; i++)
+        for (i = 0; i < settlements.length; i++)
             fn(settlements[i]);
     }
 };

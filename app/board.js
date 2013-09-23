@@ -182,25 +182,25 @@ Board.prototype.chooseRoad = function (player) {
 Board.prototype.distributeResources = function (tileId) {
     var self = this,
         // determine resource type
-        resource = self.resourceMap[tileId],
+        resource = self.resourceMap[tileId].type,
         settlements = self.settlements,
+        players = self.players,
         updateQueue = [],
-        settlement,
-        player,
         i;
-    for (i = 0; i < settlements.length; i++) {
-        settlement = settlements[i];
-        if (settlement.intersection.indexOf(tileId) >= 0) {
-            player = self.players.getPlayer(settlement.playerId);
+    tileId = +tileId;
+
+    settlements.each(function (settlement) {
+        var intersection = utils.getTileIdsFromIntersectionId(settlement.intersectionId);
+        if (intersection.indexOf(tileId) >= 0) {
+            var player = players.getPlayer(settlement.playerId);
             player.resources[resource] += settlement.type === 'city' ? 2 : 1;
-            if (updateQueue.indexOf(playerId) < 0) {
-                updateQueue.push(playerId);
+            if (updateQueue.indexOf(player.id) < 0) {
+                updateQueue.push(player.id);
             }
         }
-    }
+    });
     for (i = 0; i < updateQueue.length; i++) {
-        player = self.players.getPlayer(updateQueue[i]);
-        self.updateResources(player);
+        self.updateResources(players.getPlayer(updateQueue[i]));
     }
 };
 
@@ -218,7 +218,17 @@ Board.prototype.nextTurn = function () {
         socket = player.socket;
 
     self.roll(player)
-        .then(function () {
+        .then(function (diceValue) {
+            // distribute resources
+            if (diceValue !== 7) {
+                var tileIds = self.diceMap[diceValue],
+                    i;
+                for (i = 0; i < tileIds.length; i++) {
+                    self.distributeResources(tileIds[i]);
+                }
+            } else {
+                // TODO handle rolling 7
+            }
             self.startTurn(player);
             socket.emit('start');
             socket.once('end', function () {

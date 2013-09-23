@@ -20,7 +20,7 @@ function initSocket(socket) {
             'sendchat': receiveMessage,
             'updateresources': updateResources,
             'start': startTurn,
-            'message': alertMessage,
+            'notify': notify,
             'setup': setup,
             'roll': roll,
             'update': updateBoard,
@@ -112,10 +112,10 @@ function startTurn() {
 
 function endTurn() {
     socket.emit('end');
-    $('.action-controls, .build-controls').hide();
+    $('.action-controls, .build-controls').addClass('hidden');
 }
 
-function alertMessage(data) {
+function notify(data) {
     alert(data.msg);
 }
 
