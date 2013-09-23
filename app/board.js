@@ -150,8 +150,8 @@ Board.prototype.chooseSettlement = function (player) {
     // return a promise. when we receive client response, resolve promise
     var self = this,
         deferred = Q.defer();
-    player.socket.emit('choosesettlement');
-    player.socket.once('choosesettlement', function (intersectionId) {
+    player.socket.emit('settlement');
+    player.socket.once('settlement', function (intersectionId) {
         self.placeSettlement(player, intersectionId);
         deferred.resolve({player: player, intersectionId: intersectionId});
     });
@@ -208,37 +208,6 @@ Board.prototype.updateResources = function (player) {
     player.socket.emit('updateresources', player.resources);
 };
 
-function build(data) {
-    var self = this,
-        buildMap = {
-            settlement: self.buildSettlement,
-            road: self.buildRoad,
-            city: self.buildCity,
-            devCard: self.buildDevCard
-        };
-    buildMap[data.type](data);
-}
-
-function devcard(data) {
-}
-
-function trade(data) {
-}
-
-function startTurn(player) {
-    var socket = player.socket;
-    socket.on('trade', trade);
-    socket.on('build', build);
-    socket.on('devcard', devcard);
-}
-
-function endTurn(player) {
-    var socket = player.socket;
-    socket.removeAllListeners('trade');
-    socket.removeAllListeners('build');
-    socket.removeAllListeners('devcard');
-}
-
 /**
  * main game loop.
  */
@@ -247,13 +216,33 @@ Board.prototype.nextTurn = function () {
         players = self.players,
         player = players.getCurrent(),
         socket = player.socket;
-    startTurn(player);
-    socket.emit('startturn');
-    socket.once('endturn', function () {
-        players.next();
-        endTurn(player);
-        self.nextTurn();
+
+    self.roll(player)
+        .then(function () {
+            self.startTurn(player);
+            socket.emit('start');
+            socket.once('end', function () {
+                players.next();
+                self.endTurn(player);
+                self.nextTurn();
+            });
+        });
+};
+
+Board.prototype.startTurn = function (player) {
+    var self = this,
+        socket = player.socket;
+    // init build channels.
+    socket.on('settlement', function (intersectionId) {
+        // validate intersection -> pay -> place settlement
+        if (isValidSettlement(player, intersectionId))
+            self.buildSettlement(player, intersectionId);
     });
+};
+
+Board.prototype.endTurn = function (player) {
+    var socket = player.socket;
+    socket.removeAllListeners('settlement');
 };
 
 Board.prototype.pay = function (player, price) {
@@ -288,6 +277,8 @@ Board.prototype.buildSettlement = function (player, intersectionId) {
     };
     if (this.pay(player, cost)) {
         this.placeSettlement(player, intersectionId);
+    } else {
+        // throw error.
     }
 };
 
@@ -297,7 +288,9 @@ Board.prototype.buildCity = function (player, intersectionId) {
         stone: 3
     };
     if (this.pay(player, cost)) {
-        this.placeSettlement(player, intersectionId);
+        this.placeCity(player, intersectionId);
+    } else {
+        // throw error.
     }
 };
 

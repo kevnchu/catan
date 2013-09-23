@@ -19,13 +19,12 @@ function initSocket(socket) {
             'adduser': initPlayer,
             'sendchat': receiveMessage,
             'updateresources': updateResources,
-            'startturn': startTurn,
-            'endturn': endTurn,
+            'start': startTurn,
             'message': alertMessage,
             'setup': setup,
             'roll': roll,
             'update': updateBoard,
-            'choosesettlement': selectSettlementLocation,
+            'settlement': selectSettlementLocation,
             'chooseroad': selectRoad
         },
         channel;
@@ -81,7 +80,7 @@ function registerControls(context) {
         build: build,
         sendChat: sendChat,
         trade: '',
-        endTurn: '',
+        endTurn: endTurn,
         buildSettlement: buildSettlement,
         buildRoad: '',
         buildCity: '',
@@ -112,6 +111,7 @@ function startTurn() {
 }
 
 function endTurn() {
+    socket.emit('end');
     $('.action-controls, .build-controls').hide();
 }
 
@@ -191,7 +191,7 @@ function selectSettlementLocation() {
             intersectionId: intersectionId
         };
         view.drawSettlement(settlement);
-        socket.emit('choosesettlement', intersectionId);
+        socket.emit('settlement', intersectionId);
         pubsubz.unsubscribe(token);
     });
 }
