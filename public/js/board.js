@@ -3,8 +3,7 @@ module.exports = Board;
 var components = require('./components'),
     Settlements = require('./settlements'),
     Roads = require('./roads'),
-    utils = require('./utils'),
-    intersectionMap = components.intersectionMap;
+    utils = require('./utils');
 
 function Board(boardData) {
     this.settlements = new Settlements();
@@ -20,49 +19,49 @@ Board.prototype.longestRoad = function () {
     });
 };
 
-Board.prototype.isValidSettlement = function (player, settlementIntersection) {
-    var intersections = intersectionMap,
-        settlements = this.settlements,
-        settlementIntersectionId = utils.getIntersectionId(settlementIntersection);
-
-    if (!intersections[settlementIntersectionId]) {
+Board.prototype.isValidSettlement = function (player, intersectionId) {
+    // Check to see if this is a valid settlement location.
+    var self = this,
+        intersectionMap = components.intersectionMap,
+        settlements = self.settlements,
+        roads = self.roads.byPlayerId(player.id),
+        intersection = intersectionMap[intersectionId];
+    if (!intersectionMap[intersectionId]) {
         return;
     }
     
-    // check to see if intersection is legal
-    //     - intersection is not occupied
+    // check to see if location is legal
+    //     - location is not occupied
     //     - at least 2 roads  away from any other settlement.
-    var isLegal = settlements.each(function (settlement) {
-        var intersection = settlement.get('intersection'),
-            count = 0;
-        intersection.forEach(function (tileId) {
-            if (settlementIntersection.indexOf(tileId) >= 0) {
+    var isLegal = settlements.every(function (settlement) {
+        var otherIntersection = intersectionMap[settlement.intersectionId];
+        var count = 0;
+        otherIntersection.forEach(function (point) {
+            if (intersection.indexOf(point) >= 0) {
                 count++;
             }
         });
         return count < 2;
     });
-    if (!isLegal) { return; }
-
-    // Used for initial game setup where settlement is placed without a road.
-    if (settlements.byPlayerId(player.id).length < 3) {
-        return true;
+    if (!isLegal) {
+        console.log('Settlement must be at least 2 roads away from another settlement.');
+        return;
     }
-
-    // player has a road that is connected
-    var roads = this.roads;
-    isLegal = roads.byPlayerId(player.id).some(function (road) {
-        var edge = road.get('edge'),
-            intersectionId = utils.getIntersectionId(edge[0]);
-        if (intersectionId === settlementIntersectionId) {
+    //     - player has a road that is connected
+    isLegal = roads.some(function (road) {
+        var roadIntersectionId = road.edge[0];
+        if (roadIntersectionId === intersectionId) {
             return true;
         }
-        intersectionId = utils.getIntersectionId(edge[1]);
-        if (intersectionId === settlementIntersectionId) {
+        roadIntersectionId = road.edge[1];
+        if (roadIntersectionId === intersectionId) {
             return true;
         }
     });
-    if (!isLegal) { return; }
+    if (!isLegal) {
+        console.log('Settlement is not connected to a road.');
+        return;
+    }
     return true;
 };
 
@@ -80,7 +79,8 @@ Board.prototype.addCity = function (city) {
 };
 
 Board.prototype.isValidRoad = function (player, start, end) {
-    var intersections = intersectionMap,
+    /*
+    var intersections = components.intersectionMap,
         roads = this.roads,
         // Check to see if start and end are valid intersections.
         startId = utils.getIntersectionId(start),
@@ -130,6 +130,7 @@ Board.prototype.isValidRoad = function (player, start, end) {
     });
     if (!isLegal) { return; }
     return true;
+   */
 };
 
 Board.prototype.placeRoad = function (road) {
@@ -138,11 +139,13 @@ Board.prototype.placeRoad = function (road) {
 
 Board.prototype.isValidCity = function (player, intersectionId) {
     // check that the player has an existing settlement in the given intersection.
+    /*
     var settlements = this.settlements.get(player.playerId);
     return settlements.some(function (settlement) {
         return settlement.intersectionId === intersectionId &&
             settlement.type !== 'city';
     });
+    */
 };
 
 Board.prototype.placeCity = function (settlement) {

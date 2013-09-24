@@ -245,8 +245,12 @@ Board.prototype.startTurn = function (player) {
     // init build channels.
     socket.on('settlement', function (intersectionId) {
         // validate intersection -> pay -> place settlement
-        if (isValidSettlement(player, intersectionId))
+        if (self.isValidSettlement(player, intersectionId)) {
+            console.log('Settlement is valid');
             self.buildSettlement(player, intersectionId);
+        } else {
+            socket.emit('error', 'invalid settlement location');
+        }
     });
 };
 
@@ -350,9 +354,10 @@ Board.prototype.placeRoad = function (player, edge) {
  */
 Board.prototype.isValidSettlement = function (player, intersectionId) {
     // Check to see if this is a valid settlement location.
-    var intersectionMap = components.intersectionMap,
-        settlements = this.settlements,
-        roads = this.roads.byPlayerId(player.id),
+    var self = this,
+        intersectionMap = components.intersectionMap,
+        settlements = self.settlements,
+        roads = self.roads.byPlayerId(player.id),
         intersection = intersectionMap[intersectionId];
     if (!intersectionMap[intersectionId]) {
         return;
@@ -372,6 +377,7 @@ Board.prototype.isValidSettlement = function (player, intersectionId) {
         return count < 2;
     });
     if (!isLegal) {
+        console.log('Settlement must be at least 2 roads away from another settlement.');
         return;
     }
     //     - player has a road that is connected
@@ -386,6 +392,7 @@ Board.prototype.isValidSettlement = function (player, intersectionId) {
         }
     });
     if (!isLegal) {
+        console.log('Settlement is not connected to a road.');
         return;
     }
     return true;

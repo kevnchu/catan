@@ -9,11 +9,11 @@ function Player(name, socket) {
         this.socket = socket;
     this.points = 0;
     this.resources = {
-        wood: 0,
-        stone: 0,
-        brick: 0,
-        wheat: 0,
-        sheep: 0
+        brick: 4,
+        sheep: 4,
+        stone: 4,
+        wheat: 4,
+        wood: 4
     };
     this.devCards = [];
     this.color = null;

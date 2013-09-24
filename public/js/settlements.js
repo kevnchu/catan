@@ -21,10 +21,15 @@ Settlements.prototype = {
         });
     },
 
+    some: function (fn) {
+        return _.some(this.settlements, fn);
+    },
+
+    every: function (fn) {
+        return _.every(this.settlements, fn);
+    },
+
     each: function (fn) {
-        var settlements = this.settlements,
-            i;
-        for (i = 0; i < settlements; i++)
-            fn(settlements[i]);
+        _.forEach(this.settlements, fn);
     }
 };

@@ -1,5 +1,7 @@
 module.exports = Roads;
 
+var _ = require('lodash');
+
 function Roads() {
     this.roads = [];
 }
@@ -18,10 +20,15 @@ Roads.prototype = {
         });
     },
 
+    some: function (fn) {
+        return _.some(this.roads, fn);
+    },
+
+    every: function (fn) {
+        return _.every(this.roads, fn);
+    },
+
     each: function (fn) {
-        var roads = this.roads,
-            i;
-        for (i = 0; i < roads.length; i++)
-            fn(roads[i]);
+        _.forEach(this.roads, fn);
     }
 };
