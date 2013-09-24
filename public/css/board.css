@@ -1,0 +1,31 @@
+.intersection {
+    fill: #ABC;
+}
+
+.intersection:hover {
+    fill: goldenrod;
+}
+
+.brick-tile {
+    fill: darkred;
+}
+
+.sheep-tile {
+    fill: lightgreen;
+}
+
+.stone-tile {
+    fill: darkgray;
+}
+
+.wheat-tile {
+    fill: lightgoldenrodyellow;
+}
+
+.wood-tile {
+    fill: #7e4e21;
+}
+
+.desert-tile {
+    fill: pink;
+}

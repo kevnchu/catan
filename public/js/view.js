@@ -36,7 +36,6 @@ function drawBoard(boardData, config) {
         hexCoords,
         resourceType,
         tileId,
-        resourceTileColorMap = components.resourceTileColorMap,
         flattenCoords = function (x) { return x.p; },
         i;
 
@@ -74,7 +73,7 @@ function drawBoard(boardData, config) {
         hexNode = hexNode.cloneNode();
         hexNode.setAttribute('points', hexCoords.join(' '));
         hexNode.setAttributeNS(catanNS, 'tileId', tileId);
-        hexNode.setAttribute('fill', resourceTileColorMap[resourceType]);
+        hexNode.className.baseVal = resourceType + '-tile';
         chitNode = chitNode.cloneNode();
         chitNode.textContent = tileDiceValueMap[tileId];
         chitNode.setAttribute('x', hexCoords[0][0] + config.size - 5);
@@ -110,7 +109,7 @@ function drawIntersections(board, intersections) {
         intersection,
         p,
         i;
-    target.setAttribute('fill', '#ABC');
+    target.classList.add('intersection');
     target.setAttribute('r', '9');
     for (i = 0; i < intersections.length; i++) {
         intersection = intersections[i];

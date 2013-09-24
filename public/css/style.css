@@ -1,15 +1,9 @@
 body {
-    /*
-    background-color: #79c3d2;
-    */
 }
 
 .board-container {
     margin: 30px;
     float: left;
-    /*
-    background-color: #d9eef2;
-    */
 }
 
 .chat-container {
@@ -17,9 +11,6 @@ body {
     margin: 30px;
     width: 500px;
     outline: solid 1px #444;
-    /*
-    background-color: #d9eef2;
-    */
 }
 
 .chat-log {
@@ -40,12 +31,6 @@ body {
 .action-container, .options-container {
     margin: 30px;
     clear: left;
-    /*
-    background-color: #d9eef2;
-    */
-}
-
-.inactive {
 }
 
 .hidden {

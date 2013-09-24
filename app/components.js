@@ -1,13 +1,4 @@
 module.exports = {
-    resourceTileColorMap: {
-        stone: 'darkgray',
-        wheat: 'lightgoldenrodyellow',
-        wood: '#7e4e21',
-        brick: 'darkred',
-        sheep: 'lightgreen',
-        desert: 'pink'
-    },
-
     tileIdLayout:  [[2, 3, 4], [1, 13, 14, 5],
         [0, 12, 18, 15, 6], [11, 17, 16, 7],
         [10, 9, 8]],
