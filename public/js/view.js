@@ -1,5 +1,4 @@
 module.exports = {
-    drawResourceKey: drawResourceKey,
     drawResources: drawResources,
     drawBoard: drawBoard,
     drawRoad: drawRoad,
@@ -80,22 +79,11 @@ function drawBoard(boardData, config) {
         chitNode.setAttribute('y', hexCoords[0][1]);
         board.appendChild(hexNode);
         board.appendChild(chitNode);
-        //drawIntersections(board, intersectionCoords[i]);
     }
     drawIntersections(board, intersectionCoords.reduce(function (prev, current) {
         return prev.concat(current);
     }));
     svg.appendChild(board);
-}
-
-/**
- * Renders the card that shows how many resources each building
- * costs.
- */
-function drawResourceKey() {
-    var card = document.createElement('img');
-    card.src = 'images/key.png';
-    document.body.appendChild(card);
 }
 
 function drawResources(resources) {

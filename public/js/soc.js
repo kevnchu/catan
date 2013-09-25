@@ -70,7 +70,6 @@ function setup(boardData) {
     board = new Board(boardData);
 
     view.drawBoard(boardData, {size: 60});
-    view.drawResourceKey();
     view.drawResources(player.resources);
 }
 
