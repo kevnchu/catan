@@ -34,14 +34,14 @@ function distance(p0, p1) {
 function HexLayout(size) {
     var layout = [],
         columns = [3, 4, 5, 4, 3],
+        hexPiece = hexCoordinates.map(function (p) {
+            return [p[0] * size, p[1] * size];
+        }),
         column,
         colOffset,
         colSize,
         adjacent,
         intersection,
-        hexPiece = hexCoordinates.map(function (p) {
-            return [p[0] * size, p[1] * size];
-        }),
         i, j, p, x, y, tileId;
 
     for (colIndex = 0; colIndex < columns.length; colIndex++) {
@@ -59,11 +59,9 @@ function HexLayout(size) {
                 intersection = [tileId, adjacent[j], adjacent[(j + 5) % 6]];
                 column.push({p: [x, y], intersectionId: utils.getIntersectionId(intersection)});
             }
-
             layout.push(column);
         }
     }
-
     this.size = size;
     this.layout = layout;
 }

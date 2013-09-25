@@ -32,11 +32,11 @@ function drawBoard(boardData, config) {
         tileIdArray = components.tileIdLayout.reduce(function (a, b) {
             return a.concat(b);
         }),
+        flattenCoords = function (x) { return x.p; },
         intersectionCoords,
         hexCoords,
         resourceType,
         tileId,
-        flattenCoords = function (x) { return x.p; },
         i;
 
     resourceMap = boardData.resourceMap;
@@ -80,8 +80,11 @@ function drawBoard(boardData, config) {
         chitNode.setAttribute('y', hexCoords[0][1]);
         board.appendChild(hexNode);
         board.appendChild(chitNode);
-        drawIntersections(board, intersectionCoords[i]);
+        //drawIntersections(board, intersectionCoords[i]);
     }
+    drawIntersections(board, intersectionCoords.reduce(function (prev, current) {
+        return prev.concat(current);
+    }));
     svg.appendChild(board);
 }
 
@@ -106,19 +109,25 @@ function drawResources(resources) {
 
 function drawIntersections(board, intersections) {
     var target = document.createElementNS(svgNS, 'circle'),
+        unique = {},
         intersection,
+        intersectionId,
         p,
         i;
     target.classList.add('intersection');
     target.setAttribute('r', '9');
     for (i = 0; i < intersections.length; i++) {
         intersection = intersections[i];
-        p = intersection.p;
-        target = target.cloneNode();
-        target.setAttributeNS(catanNS, 'intersectionId', intersection.intersectionId);
-        target.setAttribute('cx', p[0]);
-        target.setAttribute('cy', p[1]);
-        board.appendChild(target);
+        intersectionId = intersection.intersectionId;
+        if (!unique[intersectionId]) {
+            p = intersection.p;
+            unique[intersectionId] = true;
+            target = target.cloneNode();
+            target.setAttributeNS(catanNS, 'intersectionId', intersectionId);
+            target.setAttribute('cx', p[0]);
+            target.setAttribute('cy', p[1]);
+            board.appendChild(target);
+        }
     }
 }
 
