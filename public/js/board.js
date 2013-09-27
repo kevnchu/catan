@@ -53,6 +53,11 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
         console.log('Settlement must be at least 2 roads away from another settlement.');
         return;
     }
+    if (settlements.byPlayerId(playerId).length < 2) {
+        // if we're in the setup phase, don't have the requirement that settlement
+        // must touch road.
+        return true;
+    }
     //     - player has a road that is connected
     isLegal = roads.some(function (road) {
         var roadIntersectionId = road.edge[0];
@@ -85,6 +90,7 @@ Board.prototype.addCity = function (city) {
 };
 
 Board.prototype.isValidRoad = function (player, start, end) {
+    return true;
     /*
     var intersections = components.intersectionMap,
         roads = this.roads,

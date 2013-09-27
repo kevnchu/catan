@@ -196,14 +196,19 @@ function placeSettlement() {
     alert('choose settlement');
     showValidIntersections();
     var token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
-        var settlement = {
-            playerId: player.id,
-            type: 'settlement',
-            intersectionId: intersectionId
-        };
-        view.drawSettlement(settlement);
-        socket.emit('settlement', intersectionId);
-        pubsubz.unsubscribe(token);
+        if (board.isValidSettlement(player.id, intersectionId)) {
+            var settlement = {
+                playerId: player.id,
+                type: 'settlement',
+                intersectionId: intersectionId
+            };
+            view.clearHighlighted();
+            view.drawSettlement(settlement);
+            socket.emit('settlement', intersectionId);
+            pubsubz.unsubscribe(token);
+        } else {
+            alert('You can\'t place a settlement there.');
+        }
     });
 }
 
@@ -215,13 +220,18 @@ function placeRoad() {
             edge.push(intersectionId);
             alert(intersectionId);
             if (edge.length === 2) {
-                road = {
-                    playerId: player.id,
-                    edge: edge
-                };
-                view.drawRoad(road);
-                socket.emit('road', edge);
-                pubsubz.unsubscribe(token);
+                if (board.isValidRoad(player.id, edge)) {
+                    road = {
+                        playerId: player.id,
+                        edge: edge
+                    };
+                    view.drawRoad(road);
+                    socket.emit('road', edge);
+                    pubsubz.unsubscribe(token);
+                } else {
+                    edge = [];
+                    alert('You can\'t place a road there');
+                }
             }
         });
 }
