@@ -14,17 +14,23 @@ function Board(boardData) {
     this.playerMap = boardData.playerMap;
 }
 
-Board.prototype.longestRoad = function () {
-    $.each(this.playerMap, function (i, player) {
+Board.prototype.getValidIntersections = function (playerId) {
+    var self = this,
+        intersections = Object.keys(components.intersectionMap);
+    return _.filter(intersections, function (intersectionId) {
+        return self.isValidSettlement(playerId, intersectionId);
     });
 };
 
-Board.prototype.isValidSettlement = function (player, intersectionId) {
+Board.prototype.longestRoad = function () {
+};
+
+Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     // Check to see if this is a valid settlement location.
     var self = this,
         intersectionMap = components.intersectionMap,
         settlements = self.settlements,
-        roads = self.roads.byPlayerId(player.id),
+        roads = self.roads.byPlayerId(playerId),
         intersection = intersectionMap[intersectionId];
     if (!intersectionMap[intersectionId]) {
         return;

@@ -107,7 +107,7 @@ Board.prototype.setup = function () {
                     if (resource !== 'desert')
                         player.resources[resource]++;
                 }
-                self.updateResources(player);               
+                self.updateResources(player);
             }
             return player;
         })
@@ -166,8 +166,8 @@ Board.prototype.chooseCity = function (player) {
 Board.prototype.chooseRoad = function (player) {
     var self = this,
         deferred = Q.defer();
-    player.socket.emit('chooseroad');
-    player.socket.once('chooseroad', function (edge) {
+    player.socket.emit('road');
+    player.socket.once('road', function (edge) {
         self.placeRoad(player, edge);
         deferred.resolve({player: player, edge: edge});
     });
@@ -243,9 +243,12 @@ Board.prototype.startTurn = function (player) {
     var self = this,
         socket = player.socket;
     // init build channels.
+    socket.on('road', function (edge) {
+        self.buildRoad(player, edge);
+    });
     socket.on('settlement', function (intersectionId) {
         // validate intersection -> pay -> place settlement
-        if (self.isValidSettlement(player, intersectionId)) {
+        if (self.isValidSettlement(player.id, intersectionId)) {
             console.log('Settlement is valid');
             self.buildSettlement(player, intersectionId);
         } else {
@@ -308,13 +311,13 @@ Board.prototype.buildCity = function (player, intersectionId) {
     }
 };
 
-Board.prototype.buildRoad = function () {
+Board.prototype.buildRoad = function (player, edge) {
     var cost = {
         brick: 1,
         wood: 1
     };
     if (this.pay(player, cost)) {
-        this.placeRoad(player, start, end);
+        this.placeRoad(player, edge);
     }
 };
 
@@ -352,12 +355,12 @@ Board.prototype.placeRoad = function (player, edge) {
 /**
  * placement methods must trigger propagate event.
  */
-Board.prototype.isValidSettlement = function (player, intersectionId) {
+Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     // Check to see if this is a valid settlement location.
     var self = this,
         intersectionMap = components.intersectionMap,
         settlements = self.settlements,
-        roads = self.roads.byPlayerId(player.id),
+        roads = self.roads.byPlayerId(playerId),
         intersection = intersectionMap[intersectionId];
     if (!intersectionMap[intersectionId]) {
         return;
@@ -399,7 +402,7 @@ Board.prototype.isValidSettlement = function (player, intersectionId) {
     // create new settlent and add to data structure.
 };
 
-Board.prototype.isValidRoad = function (player, start, end) {
+Board.prototype.isValidRoad = function (playerId, start, end) {
     // Validate that the start and end locations are valid
 
     // check to see if location is legal
@@ -407,7 +410,7 @@ Board.prototype.isValidRoad = function (player, start, end) {
     //     - not already an existing road here.
 };
 
-Board.prototype.placeCity = function (player, cityLocation) {
+Board.prototype.placeCity = function (playerId, cityLocation) {
     // Check to see if this is a valid location
 
     // check to see if location is legal

@@ -65,17 +65,6 @@ module.exports = {
         18: [14, 15, 16, 17, 12, 13]
     },
 
-    // TODO these need to be updated for new numbering
-    // scheme.
-    sea_intersections: {
-        stone: [-29,-30],
-        wheat: [-25,-26],
-        mystery: [-23,-22,-12,-13,-9,-10,-2,-3],
-        wood: [-20,-19],
-        brick: [-15,-16],
-        sheep: [-5,-6]
-    },
-    
     intersectionMap: {
         "-16,-15,2": [ "-16", "-15", "2" ],
         "-15,2,3": [ "-15", "2", "3" ],

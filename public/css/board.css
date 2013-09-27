@@ -2,7 +2,7 @@
     fill: #ABC;
 }
 
-.intersection:hover {
+.intersection:hover, .intersection.highlight {
     fill: goldenrod;
 }
 

@@ -2,7 +2,9 @@ module.exports = {
     drawResources: drawResources,
     drawBoard: drawBoard,
     drawRoad: drawRoad,
-    drawSettlement: drawSettlement
+    drawSettlement: drawSettlement,
+    highlightIntersections: highlightIntersections,
+    clearHighlighted: clearHighlighted
 };
 
 var utils = require('./utils'),
@@ -10,6 +12,7 @@ var utils = require('./utils'),
     components = require('./components'),
     svgNS = 'http://www.w3.org/2000/svg',
     catanNS = 'catan',
+    intersectionIdMap = {},
     robber,
     playerMap,
     resourceMap,
@@ -97,7 +100,6 @@ function drawResources(resources) {
 
 function drawIntersections(board, intersections) {
     var target = document.createElementNS(svgNS, 'circle'),
-        unique = {},
         intersection,
         intersectionId,
         p,
@@ -107,14 +109,14 @@ function drawIntersections(board, intersections) {
     for (i = 0; i < intersections.length; i++) {
         intersection = intersections[i];
         intersectionId = intersection.intersectionId;
-        if (!unique[intersectionId]) {
+        if (!intersectionIdMap[intersectionId]) {
             p = intersection.p;
-            unique[intersectionId] = true;
             target = target.cloneNode();
             target.setAttributeNS(catanNS, 'intersectionId', intersectionId);
             target.setAttribute('cx', p[0]);
             target.setAttribute('cy', p[1]);
             board.appendChild(target);
+            intersectionIdMap[intersectionId] = target;
         }
     }
 }
@@ -163,6 +165,24 @@ function drawRobber(tileId) {
     robber.setAttribute('x', coordinates[0] + 30);
     robber.setAttribute('y', coordinates[1] + 20);
     board.append(robber);
+}
+
+/**
+ * @param {array} intersections array of intersection ids
+ */
+function highlightIntersections(intersections) {
+    var i,
+        intersection;
+    for (i = 0; i < intersections.length; i++) {
+        intersection = intersectionIdMap[intersections[i]];
+        intersection.classList.add('highlight');
+    }
+}
+
+function clearHighlighted() {
+    _.each(intersectionIdMap, function (id, node) {
+        node.classList.remove('highlight');
+    });
 }
 
 function moveRobber(tileId) {

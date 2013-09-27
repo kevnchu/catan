@@ -24,8 +24,8 @@ function initSocket(socket) {
             'setup': setup,
             'roll': roll,
             'update': updateBoard,
-            'settlement': selectSettlementLocation,
-            'chooseroad': selectRoad
+            'settlement': placeSettlement,
+            'road': placeRoad
         },
         channel;
 
@@ -81,7 +81,7 @@ function registerControls(context) {
         trade: '',
         endTurn: endTurn,
         buildSettlement: buildSettlement,
-        buildRoad: '',
+        buildRoad: buildRoad,
         buildCity: '',
         buildDevCard: '',
         playDevCard: ''
@@ -173,16 +173,28 @@ function updateBoard(data) {
 }
 
 function buildSettlement() {
-    // check to see we have enough resources.
     var resources = player.resources;
     if (resources.brick >= 1 && resources.sheep >= 1 && 
         resources.wheat >= 1 && resources.wood >= 1) {
-        selectSettlementLocation();
+        placeSettlement();
     }
 }
 
-function selectSettlementLocation() {
+function buildRoad() {
+    var resources = player.resources;
+    if (resources.brick >= 1 && resources.wood >= 1) {
+        placeRoad();
+    }
+}
+
+function showValidIntersections() {
+    var intersections = board.getValidIntersections(player.id);
+    view.highlightIntersections(intersections);
+}
+
+function placeSettlement() {
     alert('choose settlement');
+    showValidIntersections();
     var token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
         var settlement = {
             playerId: player.id,
@@ -195,7 +207,7 @@ function selectSettlementLocation() {
     });
 }
 
-function selectRoad() {
+function placeRoad() {
     alert('choose road.');
     var edge = [],
         token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
@@ -208,7 +220,7 @@ function selectRoad() {
                     edge: edge
                 };
                 view.drawRoad(road);
-                socket.emit('chooseroad', edge);
+                socket.emit('road', edge);
                 pubsubz.unsubscribe(token);
             }
         });
