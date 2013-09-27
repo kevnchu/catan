@@ -22,7 +22,17 @@ Board.prototype.getValidIntersections = function (playerId) {
     });
 };
 
-Board.prototype.longestRoad = function () {
+Board.prototype.addSettlement = function (settlement) {
+    this.settlements.add(settlement);
+};
+
+Board.prototype.addRoad = function (road) {
+    this.roads.add(road);
+};
+
+Board.prototype.addCity = function (city) {
+    var settlement = this.settlements.byIntersectionId(city.intersectionId);
+    settlement.type = 'city';
 };
 
 Board.prototype.isValidSettlement = function (playerId, intersectionId) {
@@ -76,34 +86,22 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     return true;
 };
 
-Board.prototype.addSettlement = function (settlement) {
-    this.settlements.add(settlement);
-};
-
-Board.prototype.addRoad = function (road) {
-    this.roads.add(road);
-};
-
-Board.prototype.addCity = function (city) {
-    var settlement = this.settlements.byIntersectionId(city.intersectionId);
-    settlement.type = 'city';
-};
-
-Board.prototype.isValidRoad = function (player, start, end) {
-    return true;
-    /*
+Board.prototype.isValidRoad = function (playerId, edge) {
     var intersections = components.intersectionMap,
         roads = this.roads,
         // Check to see if start and end are valid intersections.
-        startId = utils.getIntersectionId(start),
-        endId = utils.getIntersectionId(end);
+        startId = edge[0],
+        endId = edge[1],
+        startIntersection = utils.getTileIdsFromIntersectionId(startId),
+        endIntersection = utils.getTileIdsFromIntersectionId(endId);
+
     if (!intersections[startId] || !intersections[endId]) {
         return;
     }
     // Make sure start and end positions are one edge length apart.
     var count = 2;
-    start.forEach(function (tileId) {
-        if (end.indexOf(tileId) >= 0) {
+    startIntersection.forEach(function (tileId) {
+        if (endIntersection.indexOf(tileId) >= 0) {
             count--;
         }
     });
@@ -111,10 +109,10 @@ Board.prototype.isValidRoad = function (player, start, end) {
 
     //     - not already an existing road here.
     isLegal = roads.each(function (road) {
-        var edge = road.get('edge'),
-            intersectionId = utils.getIntersectionId(edge[0]);
+        var otherEdge = road.edge,
+            intersectionId = otherEdge[0];
         if (startId === intersectionId || endId === intersectionId) {
-            intersectionId = utils.getIntersectionId(edge[1]);
+            intersectionId = otherEdge[1];
             if (startId === intersectionId || endId === intersectionId) {
                 return false;
             }
@@ -123,64 +121,32 @@ Board.prototype.isValidRoad = function (player, start, end) {
     });
     if (!isLegal) { return; }
 
-    if (roads.byPlayerId(player.id).length < 3) {
-        return true;
-    }
-
     // check to see if location is legal
     //     - connecting to another road / settlement
+    // TODO make byPlayerId chainable with some.
     var isLegal = roads.byPlayerId(player.id).some(function (road) {
-        var edge = road.get('edge'),
-            intersectionId = utils.getIntersectionId(edge[0]);
+        var otherEdge = road.edge,
+            intersectionId = otherEdge[0];
         if (intersectionId === startId || intersectionId === endId) {
             return true;
         }
-        intersectionId = utils.getIntersectionId(edge[1]);
+        intersectionId = otherEdge[1];
         if (intersectionId === startId || intersectionId === endId) {
             return true;
         }
     });
     if (!isLegal) { return; }
     return true;
-   */
 };
 
-Board.prototype.placeRoad = function (road) {
-    this.roads.add(road);
-};
-
-Board.prototype.isValidCity = function (player, intersectionId) {
-    // check that the player has an existing settlement in the given intersection.
-    /*
-    var settlements = this.settlements.get(player.playerId);
+Board.prototype.isValidCity = function (playerId, intersectionId) {
+    var settlements = this.settlements.byPlayerId(playerId);
     return settlements.some(function (settlement) {
         return settlement.intersectionId === intersectionId &&
             settlement.type !== 'city';
     });
-    */
-};
-
-Board.prototype.placeCity = function (settlement) {
-    settlement.type = 'city';
 };
 
 Board.prototype.moveRobber = function (tileId) {
     this.robber = tileId;
-};
-
-Board.prototype.getTileIdsByDiceValue = function (diceValue) {
-    return this.diceMap[diceValue];
-};
-
-Board.prototype.getResourceTypeByTileId = function (tileId) {
-    return this.resourceMap[tileId];
-};
-
-Board.prototype.getSettlementsAdjToTileId = function (tileId) {
-    return this.settlements.filter(function (settlement) {
-        return settlement.isAdjacentTo(tileId);
-    });
-};
-
-Board.prototype.getSettlementAtLocation = function (loc) {
 };

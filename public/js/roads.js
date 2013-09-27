@@ -13,8 +13,8 @@ Roads.prototype = {
     },
 
     byPlayerId: function (playerId) {
-        return this.roads.filter(function (x) {
-            return x.playerId === playerId;
+        return this.roads.filter(function (road) {
+            return road.playerId === playerId;
         });
     },
 

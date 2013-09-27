@@ -10,14 +10,14 @@ Settlements.prototype = {
     },
 
     byPlayerId: function (playerId) {
-        return this.settlements.filter(function (x) {
-            return x.playerId === playerId;
+        return this.settlements.filter(function (settlement) {
+            return settlement.playerId === playerId;
         });
     },
 
     byIntersectionId: function (intersectionId) {
-        return this.settlements.filter(function (x) {
-            return x.intersectionId === intersectionId;
+        return this.settlements.filter(function (settlement) {
+            return settlement.intersectionId === intersectionId;
         });
     },
 
