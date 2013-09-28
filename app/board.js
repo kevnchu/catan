@@ -352,6 +352,13 @@ Board.prototype.placeRoad = function (player, edge) {
     return road;
 };
 
+Board.prototype.placeCity = function (playerId, cityLocation) {
+    // Check to see if this is a valid location
+
+    // check to see if location is legal
+    //     - player must have an existing settlement at location.
+};
+
 /**
  * placement methods must trigger propagate event.
  */
@@ -407,19 +414,57 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     // create new settlent and add to data structure.
 };
 
-Board.prototype.isValidRoad = function (playerId, start, end) {
-    // Validate that the start and end locations are valid
+Board.prototype.isValidRoad = function (playerId, edge) {
+    var intersections = components.intersectionMap,
+        roads = this.roads,
+        // Check to see if start and end are valid intersections.
+        startId = edge[0],
+        endId = edge[1],
+        startIntersection = utils.getTileIdsFromIntersectionId(startId),
+        endIntersection = utils.getTileIdsFromIntersectionId(endId);
+
+    if (!intersections[startId] || !intersections[endId]) {
+        return;
+    }
+    // Make sure start and end positions are one edge length apart.
+    var count = 2;
+    startIntersection.forEach(function (tileId) {
+        if (endIntersection.indexOf(tileId) >= 0) {
+            count--;
+        }
+    });
+    if (count) { return; }
+
+    //     - not already an existing road here.
+    isLegal = roads.each(function (road) {
+        var otherEdge = road.edge,
+            intersectionId = otherEdge[0];
+        if (startId === intersectionId || endId === intersectionId) {
+            intersectionId = otherEdge[1];
+            if (startId === intersectionId || endId === intersectionId) {
+                return false;
+            }
+        }
+        return true;
+    });
+    if (!isLegal) { return; }
 
     // check to see if location is legal
     //     - connecting to another road / settlement
-    //     - not already an existing road here.
-};
-
-Board.prototype.placeCity = function (playerId, cityLocation) {
-    // Check to see if this is a valid location
-
-    // check to see if location is legal
-    //     - player must have an existing settlement at location.
+    // TODO make byPlayerId chainable with some.
+    var isLegal = roads.byPlayerId(player.id).some(function (road) {
+        var otherEdge = road.edge,
+            intersectionId = otherEdge[0];
+        if (intersectionId === startId || intersectionId === endId) {
+            return true;
+        }
+        intersectionId = otherEdge[1];
+        if (intersectionId === startId || intersectionId === endId) {
+            return true;
+        }
+    });
+    if (!isLegal) { return; }
+    return true;
 };
 
 Board.prototype.transitionState = function () {
