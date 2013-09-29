@@ -7,17 +7,13 @@ module.exports = {
     clearHighlighted: clearHighlighted
 };
 
-var utils = require('./utils'),
-    HexLayout = require('./hex_layout'),
+var HexLayout = require('./hex_layout'),
     components = require('./components'),
     svgNS = 'http://www.w3.org/2000/svg',
     catanNS = 'catan',
     intersectionIdMap = {},
     robber,
     playerMap,
-    resourceMap,
-    diceMap,
-    tileDiceValueMap,
     layout;
 
 /**
@@ -35,15 +31,14 @@ function drawBoard(boardData, config) {
             return a.concat(b);
         }),
         flattenCoords = function (x) { return x.p; },
+        resourceMap = boardData.resourceMap,
+        tileDiceValueMap = boardData.tileDiceValueMap,
         intersectionCoords,
         hexCoords,
         resourceType,
         tileId,
         i;
 
-    resourceMap = boardData.resourceMap;
-    diceMap = boardData.diceMap;
-    tileDiceValueMap = boardData.tileDiceValueMap;
     playerMap = boardData.playerMap;
     layout = new HexLayout(config.size);
     intersectionCoords = layout.getIntersectionCoordinates();

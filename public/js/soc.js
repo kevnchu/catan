@@ -1,9 +1,6 @@
 var view = require('./view'),
     Board = require('./board'),
     utils = require('./utils'),
-    chatInput = $('.chat-input'),
-    actionControls = $('.action-controls'),
-    buildControls = $('.build-controls'),
     board,
     player,
     socket;
@@ -106,7 +103,7 @@ function initPlayer(_player) {
 
 function startTurn() {
     alert('Your turn');
-    actionControls.removeClass('hidden');
+    $('.action-controls').removeClass('hidden');
 }
 
 function endTurn() {
@@ -119,7 +116,8 @@ function notify(data) {
 }
 
 function sendChat() {
-    var msg = chatInput[0].value;
+    var chatInput = $('.chat-input'),
+        msg = chatInput[0].value;
     chatInput[0].value = '';
     if (msg)
         socket.send(msg);
@@ -239,7 +237,7 @@ function placeRoad() {
 socket = createSocket();
 registerControls($('.board-controls'));
 registerControls($('.chat-controls'));
-chatInput.on('keypress', function (e) {
+$('.chat-input').on('keypress', function (e) {
     if (e.which === 13) {
         sendChat();
     }
