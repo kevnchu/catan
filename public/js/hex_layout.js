@@ -3,7 +3,6 @@ module.exports = HexLayout;
 var utils = require('./utils'),
     components = require('./components'),
     tileIdLayout =  components.tileIdLayout,
-    tileGridMap = components.tileGridMap,
     adjacencyMap = components.tileAdjacencyMap,
     intersectionCoordinateMap = {},
     ROOT3 = Math.sqrt(3),
@@ -16,6 +15,27 @@ var utils = require('./utils'),
         [3 / 2, 0],
         [1 / 2, 0]
     ],
+    tileGridMap = {
+        0: [2, 0],
+        1: [1, 0],
+        2: [0, 0],
+        3: [0, 1],
+        4: [0, 2],
+        5: [1, 3],
+        6: [2, 4],
+        7: [3, 3],
+        8: [4, 2],
+        9: [4, 1],
+        10: [4, 0],
+        11: [3, 0],
+        12: [2, 1],
+        13: [1, 1],
+        14: [1, 2],
+        15: [2, 3],
+        16: [3, 2],
+        17: [3, 1],
+        18: [2, 2]
+    },
     verticalOffsets = [ROOT3, ROOT3 / 2, 0, ROOT3 / 2, ROOT3];
 
 /**
@@ -109,3 +129,4 @@ HexLayout.prototype.getTileCoordinates = function (tileId) {
         y = (size * ROOT3 * coordinates[1]) + (size * verticalOffset);
     return [x, y];
 };
+

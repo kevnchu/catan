@@ -47,17 +47,17 @@ function drawBoard(boardData, config) {
     board.addEventListener('click', function (e) {
         var target = e.target,
             intersectionId,
-            coordinates,
+            edge,
             tileId;
         // determine if intersection or tile.
         if (target.tagName === 'circle') {
             intersectionId = target.getAttributeNS(catanNS, 'intersectionId');
-            coordinates = layout.getIntersectionCoordinatesById(intersectionId);
             pubsubz.publish('select-intersection', intersectionId);
-        }
-        else if (target.tagName === 'polygon') {
+        } else if (target.tagName === 'line') {
+            edge = target.getAttributeNS(catanNS, 'edge').split('+');
+            pubsubz.publish('select-edge', edge);
+        } else if (target.tagName === 'polygon') {
             tileId = target.getAttributeNS(catanNS, 'tileId');
-            coordinates = layout.getTileCoordinates(tileId);
         }
     });
 
@@ -78,6 +78,7 @@ function drawBoard(boardData, config) {
         board.appendChild(hexNode);
         board.appendChild(chitNode);
     }
+    drawEdges(board, components.edges);
     drawIntersections(board, intersectionCoords.reduce(function (prev, current) {
         return prev.concat(current);
     }));
@@ -113,6 +114,30 @@ function drawIntersections(board, intersections) {
             board.appendChild(target);
             intersectionIdMap[intersectionId] = target;
         }
+    }
+}
+
+function drawEdges(board, edges) {
+    var edgeElement = document.createElementNS(svgNS, 'line'),
+        edge,
+        startId,
+        endId,
+        p0,
+        p1,
+        i;
+
+    edgeElement.classList.add('edge');
+    for (i = 0; i < edges.length; i++) {
+        edge = edges[i];
+        p0 = layout.getIntersectionCoordinatesById(edge[0]);
+        p1 = layout.getIntersectionCoordinatesById(edge[1]);
+        edgeElement = edgeElement.cloneNode();
+        edgeElement.setAttribute('x1', p0[0]);
+        edgeElement.setAttribute('y1', p0[1]);
+        edgeElement.setAttribute('x2', p1[0]);
+        edgeElement.setAttribute('y2', p1[1]);
+        edgeElement.setAttributeNS(catanNS, 'edge', edge.join('+'));
+        board.appendChild(edgeElement);
     }
 }
 
@@ -175,7 +200,7 @@ function highlightIntersections(intersections) {
 }
 
 function clearHighlighted() {
-    _.each(intersectionIdMap, function (id, node) {
+    _.each(intersectionIdMap, function (node, id) {
         node.classList.remove('highlight');
     });
 }

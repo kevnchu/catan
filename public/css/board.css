@@ -1,9 +1,19 @@
 .intersection {
-    fill: #ABC;
+    fill-opacity: 0;
 }
 
 .intersection:hover, .intersection.highlight {
     fill: goldenrod;
+    fill-opacity: 1;
+}
+
+.edge {
+    stroke: transparent;
+    stroke-width: 5px;
+}
+
+.edge:hover, .edge.highlight {
+    stroke: goldenrod;
 }
 
 .brick-tile {

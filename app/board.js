@@ -365,11 +365,11 @@ Board.prototype.placeCity = function (playerId, cityLocation) {
 Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     // Check to see if this is a valid settlement location.
     var self = this,
-        intersectionMap = components.intersectionMap,
+        intersections = components.intersections,
         settlements = self.settlements,
         roads = self.roads.byPlayerId(playerId),
-        intersection = intersectionMap[intersectionId];
-    if (!intersectionMap[intersectionId]) {
+        intersection = utils.getTileIdsFromIntersectionId(intersectionId);
+    if (intersections.indexOf(intersectionId) < 0) {
         return;
     }
     
@@ -377,8 +377,8 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     //     - location is not occupied
     //     - at least 2 roads  away from any other settlement.
     var isLegal = settlements.every(function (settlement) {
-        var otherIntersection = intersectionMap[settlement.intersectionId];
-        var count = 0;
+        var otherIntersection = utils.getTileIdsFromIntersectionId(settlement.intersectionId),
+            count = 0;
         otherIntersection.forEach(function (point) {
             if (intersection.indexOf(point) >= 0) {
                 count++;
@@ -415,7 +415,7 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
 };
 
 Board.prototype.isValidRoad = function (playerId, edge) {
-    var intersections = components.intersectionMap,
+    var intersections = components.intersections,
         roads = this.roads,
         // Check to see if start and end are valid intersections.
         startId = edge[0],
@@ -423,7 +423,7 @@ Board.prototype.isValidRoad = function (playerId, edge) {
         startIntersection = utils.getTileIdsFromIntersectionId(startId),
         endIntersection = utils.getTileIdsFromIntersectionId(endId);
 
-    if (!intersections[startId] || !intersections[endId]) {
+    if (intersections.indexOf(startId) < 0 || intersections(endId) < 0) {
         return;
     }
     // Make sure start and end positions are one edge length apart.
@@ -436,7 +436,7 @@ Board.prototype.isValidRoad = function (playerId, edge) {
     if (count) { return; }
 
     //     - not already an existing road here.
-    isLegal = roads.each(function (road) {
+    isLegal = roads.every(function (road) {
         var otherEdge = road.edge,
             intersectionId = otherEdge[0];
         if (startId === intersectionId || endId === intersectionId) {

@@ -212,26 +212,19 @@ function placeSettlement() {
 
 function placeRoad() {
     alert('choose road.');
-    var edge = [],
-        token = pubsubz.subscribe('select-intersection', function (channel, intersectionId) {
-            var road;
-            edge.push(intersectionId);
-            alert(intersectionId);
-            if (edge.length === 2) {
-                if (board.isValidRoad(player.id, edge)) {
-                    road = {
-                        playerId: player.id,
-                        edge: edge
-                    };
-                    view.drawRoad(road);
-                    socket.emit('road', edge);
-                    pubsubz.unsubscribe(token);
-                } else {
-                    edge = [];
-                    alert('You can\'t place a road there');
-                }
-            }
-        });
+    token = pubsubz.subscribe('select-edge', function (channel, edge) {
+        if (board.isValidRoad(player.id, edge)) {
+            var road = {
+                playerId: player.id,
+                edge: edge
+            };
+            view.drawRoad(road);
+            socket.emit('road', edge);
+            pubsubz.unsubscribe(token);
+        } else {
+            alert('You can\'t place a road there');
+        }
+    });
 }
 
 socket = createSocket();
