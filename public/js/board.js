@@ -123,8 +123,7 @@ Board.prototype.isValidRoad = function (playerId, edge) {
 
     // check to see if location is legal
     //     - connecting to another road / settlement
-    // TODO make byPlayerId chainable with some.
-    var isLegal = roads.byPlayerId(player.id).some(function (road) {
+    var isLegal = _.some(roads.byPlayerId(playerId), function (road) {
         var otherEdge = road.edge,
             intersectionId = otherEdge[0];
         if (intersectionId === startId || intersectionId === endId) {
