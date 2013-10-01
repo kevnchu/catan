@@ -4,6 +4,7 @@ module.exports = {
     drawRoad: drawRoad,
     drawSettlement: drawSettlement,
     highlightIntersections: highlightIntersections,
+    highlightEdges: highlightEdges,
     clearHighlighted: clearHighlighted
 };
 
@@ -11,7 +12,6 @@ var HexLayout = require('./hex_layout'),
     components = require('./components'),
     svgNS = 'http://www.w3.org/2000/svg',
     catanNS = 'catan',
-    intersectionIdMap = {},
     robber,
     playerMap,
     layout;
@@ -96,6 +96,7 @@ function drawResources(resources) {
 
 function drawIntersections(board, intersections) {
     var target = document.createElementNS(svgNS, 'circle'),
+        unique = {},
         intersection,
         intersectionId,
         p,
@@ -105,14 +106,14 @@ function drawIntersections(board, intersections) {
     for (i = 0; i < intersections.length; i++) {
         intersection = intersections[i];
         intersectionId = intersection.intersectionId;
-        if (!intersectionIdMap[intersectionId]) {
+        if (!unique[intersectionId]) {
             p = intersection.p;
             target = target.cloneNode();
             target.setAttributeNS(catanNS, 'intersectionId', intersectionId);
             target.setAttribute('cx', p[0]);
             target.setAttribute('cy', p[1]);
             board.appendChild(target);
-            intersectionIdMap[intersectionId] = target;
+            unique[intersectionId] = 1;
         }
     }
 }
@@ -194,13 +195,55 @@ function highlightIntersections(intersections) {
     var i,
         intersection;
     for (i = 0; i < intersections.length; i++) {
-        intersection = intersectionIdMap[intersections[i]];
+        intersection = getIntersectionById(intersections[i]);
         intersection.classList.add('highlight');
     }
 }
 
+function highlightEdges(edges) {
+    var i,
+        edge;
+    for (i = 0; i < edges.length; i++) {
+        edge = getEdgeById(edges[i].join('+'));
+        edge.classList.add('highlight');
+    }
+}
+
+function getIntersectionById(intersectionId) {
+    var intersections = getIntersections(),
+        i;
+    for (i = 0; i < intersections.length; i++) {
+        if (intersections[i].getAttributeNS(catanNS, 'intersectionId') === intersectionId) {
+            return intersections[i];
+        }
+    }
+}
+
+function getEdgeById(edgeId) {
+    var edges = getEdges(),
+        i;
+    for (i = 0; i < edges.length; i++) {
+        if (edges[i].getAttributeNS(catanNS, 'edge') === edgeId) {
+            return edges[i];
+        }
+    }
+}
+
+function getIntersections() {
+    return $('circle.intersection');
+}
+
+function getEdges() {
+    return $('line.edge');
+}
+
 function clearHighlighted() {
-    _.each(intersectionIdMap, function (node, id) {
+    var intersections = getIntersections(),
+        edges = getEdges();
+    _.each(intersections, function (node, id) {
+        node.classList.remove('highlight');
+    });
+    _.each(edges, function (node, id) {
         node.classList.remove('highlight');
     });
 }

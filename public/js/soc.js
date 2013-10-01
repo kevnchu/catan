@@ -190,6 +190,15 @@ function showValidIntersections() {
     view.highlightIntersections(intersections);
 }
 
+/**
+ * 
+ * @param {string} [intersectionId]
+ */
+function showValidEdges(intersectionId) {
+    var edges = board.getValidEdges(player.id, intersectionId);
+    view.highlightEdges(edges);
+}
+
 function placeSettlement() {
     alert('choose settlement');
     showValidIntersections();
@@ -210,14 +219,19 @@ function placeSettlement() {
     });
 }
 
-function placeRoad() {
+/**
+ * @param {string} [intersectionId]
+ */
+function placeRoad(intersectionId) {
     alert('choose road.');
+    showValidEdges(intersectionId);
     token = pubsubz.subscribe('select-edge', function (channel, edge) {
         if (board.isValidRoad(player.id, edge)) {
             var road = {
                 playerId: player.id,
                 edge: edge
             };
+            view.clearHighlighted();
             view.drawRoad(road);
             socket.emit('road', edge);
             pubsubz.unsubscribe(token);

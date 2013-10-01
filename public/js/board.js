@@ -5,6 +5,10 @@ var components = require('./components'),
     Roads = require('./roads'),
     utils = require('./utils');
 
+/**
+ * 
+ * @param {object} boardData
+ */
 function Board(boardData) {
     this.settlements = new Settlements();
     this.roads = new Roads();
@@ -14,6 +18,9 @@ function Board(boardData) {
     this.playerMap = boardData.playerMap;
 }
 
+/**
+ * @param {string} playerId
+ */
 Board.prototype.getValidIntersections = function (playerId) {
     var self = this,
         intersections = components.intersections;
@@ -22,19 +29,55 @@ Board.prototype.getValidIntersections = function (playerId) {
     });
 };
 
+/**
+ * @param {string} playerId
+ * @param {string} [intersectionId]
+ */
+Board.prototype.getValidEdges = function (playerId, intersectionId) {
+    var self = this,
+        edges = components.edges;
+
+    if (intersectionId) {
+        edges = _.filter(edges, function (edge) {
+            return edge[0] === intersectionId || edge[1] === intersectionId;
+        });
+    }
+    return _.filter(edges, function (edge) {
+        return self.isValidRoad(playerId, edge);
+    });
+
+};
+
+/**
+ * 
+ * @param {object} settlement
+ */
 Board.prototype.addSettlement = function (settlement) {
     this.settlements.add(settlement);
 };
 
+/**
+ * 
+ * @param {object} road
+ */
 Board.prototype.addRoad = function (road) {
     this.roads.add(road);
 };
 
+/**
+ * 
+ * @param {object} city
+ */
 Board.prototype.addCity = function (city) {
     var settlement = this.settlements.byIntersectionId(city.intersectionId);
     settlement.type = 'city';
 };
 
+/**
+ * 
+ * @param {string} playerId
+ * @param {string} intersectionId
+ */
 Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     // Check to see if this is a valid settlement location.
     var self = this,
@@ -86,6 +129,11 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     return true;
 };
 
+/**
+ * 
+ * @param {string} playerId
+ * @param {array} edge
+ */
 Board.prototype.isValidRoad = function (playerId, edge) {
     var intersections = components.intersections,
         roads = this.roads,
@@ -138,6 +186,11 @@ Board.prototype.isValidRoad = function (playerId, edge) {
     return true;
 };
 
+/**
+ * 
+ * @param {string} playerId
+ * @param {string} intersectionId
+ */
 Board.prototype.isValidCity = function (playerId, intersectionId) {
     var settlements = this.settlements.byPlayerId(playerId);
     return settlements.some(function (settlement) {
@@ -146,6 +199,10 @@ Board.prototype.isValidCity = function (playerId, intersectionId) {
     });
 };
 
+/**
+ * 
+ * @param {number} tileId
+ */
 Board.prototype.moveRobber = function (tileId) {
     this.robber = tileId;
 };

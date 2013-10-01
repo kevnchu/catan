@@ -1,3 +1,6 @@
+/*
+ * Data in this module is intended to be read only
+ */
 module.exports = {
     tileIdLayout:  [[2, 3, 4], [1, 13, 14, 5],
         [0, 12, 18, 15, 6], [11, 17, 16, 7],

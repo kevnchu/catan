@@ -109,9 +109,11 @@ Board.prototype.setup = function () {
                 }
                 self.updateResources(player);
             }
-            return player;
+            return data;
         })
-        .then(self.chooseRoad.bind(self))
+        .then(function (data) {
+            return self.chooseRoad(data.player, data.intersectionId);
+        })
         .then(function () {
             if (++count < 2 * playerCount) {
                 if (count < playerCount) {
@@ -162,11 +164,10 @@ Board.prototype.chooseSettlement = function (player) {
 Board.prototype.chooseCity = function (player) {
 };
 
-// need to validate.
-Board.prototype.chooseRoad = function (player) {
+Board.prototype.chooseRoad = function (player, intersectionId) {
     var self = this,
         deferred = Q.defer();
-    player.socket.emit('road');
+    player.socket.emit('road', intersectionId);
     player.socket.once('road', function (edge) {
         self.placeRoad(player, edge);
         deferred.resolve({player: player, edge: edge});
