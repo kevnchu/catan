@@ -45,7 +45,6 @@ Board.prototype.getValidEdges = function (playerId, intersectionId) {
     return _.filter(edges, function (edge) {
         return self.isValidRoad(playerId, edge);
     });
-
 };
 
 /**

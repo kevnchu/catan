@@ -46,18 +46,21 @@ function drawBoard(boardData, config) {
     // add event listener to board.
     board.addEventListener('click', function (e) {
         var target = e.target,
+            tagName = target.tagName,
+            highlighted = target.classList.contains('highlight'),
             intersectionId,
             edge,
             tileId;
         // determine if intersection or tile.
-        if (target.tagName === 'circle') {
+        if (highlighted && tagName === 'circle') {
             intersectionId = target.getAttributeNS(catanNS, 'intersectionId');
             pubsubz.publish('select-intersection', intersectionId);
-        } else if (target.tagName === 'line') {
+        } else if (highlighted && tagName === 'line') {
             edge = target.getAttributeNS(catanNS, 'edge').split('+');
             pubsubz.publish('select-edge', edge);
-        } else if (target.tagName === 'polygon') {
+        } else if (tagName === 'polygon') {
             tileId = target.getAttributeNS(catanNS, 'tileId');
+            pubsubz.publish('select-tile', tileId);
         }
     });
 
