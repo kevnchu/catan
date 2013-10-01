@@ -1,7 +1,5 @@
 module.exports = Settlements;
 
-var _ = require('lodash');
-
 function Settlements () {
     this.settlements = [];
 }
@@ -24,14 +22,14 @@ Settlements.prototype = {
     },
 
     some: function (fn) {
-        return _.some(this.settlements, fn);
+        return this.settlements.some(fn);
     },
 
     every: function (fn) {
-        return _.every(this.settlements, fn);
+        return this.settlements.every(fn);
     },
 
     each: function (fn) {
-        _.forEach(this.settlements, fn);
+        this.settlements.forEach(fn);
     }
 };

@@ -19,14 +19,14 @@ Roads.prototype = {
     },
 
     some: function (fn) {
-        return _.some(this.roads, fn);
+        return this.roads.some(fn);
     },
 
     every: function (fn) {
-        return _.every(this.roads, fn);
+        return this.roads.every(fn);
     },
 
     each: function (fn) {
-        _.forEach(this.roads, fn);
+        this.roads.forEach(fn);
     }
 };

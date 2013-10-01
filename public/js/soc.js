@@ -65,7 +65,6 @@ function setup(boardData) {
 
     $('.board-container').removeClass('hidden');
     board = new Board(boardData);
-
     view.drawBoard(boardData, {size: 60});
     view.drawResources(player.resources);
 }

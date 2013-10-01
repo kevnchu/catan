@@ -10,12 +10,14 @@ var components = require('./components'),
  * @param {object} boardData
  */
 function Board(boardData) {
-    this.settlements = new Settlements();
-    this.roads = new Roads();
-    this.resourceMap = boardData.resourceMap;
-    this.diceMap = boardData.diceMap;
-    this.tileDiceValueMap = boardData.tileDiceValueMap;
-    this.playerMap = boardData.playerMap;
+    var self = this;
+    self.settlements = new Settlements();
+    self.roads = new Roads();
+    self.resourceMap = boardData.resourceMap;
+    self.diceMap = boardData.diceMap;
+    self.tileDiceValueMap = boardData.tileDiceValueMap;
+    self.playerMap = boardData.playerMap;
+    self.moveRobber(self.diceMap[7][0]);
 }
 
 /**
@@ -24,7 +26,7 @@ function Board(boardData) {
 Board.prototype.getValidIntersections = function (playerId) {
     var self = this,
         intersections = components.intersections;
-    return _.filter(intersections, function (intersectionId) {
+    return intersections.filter(function (intersectionId) {
         return self.isValidSettlement(playerId, intersectionId);
     });
 };
@@ -38,11 +40,11 @@ Board.prototype.getValidEdges = function (playerId, intersectionId) {
         edges = components.edges;
 
     if (intersectionId) {
-        edges = _.filter(edges, function (edge) {
+        edges = edges.filter(function (edge) {
             return edge[0] === intersectionId || edge[1] === intersectionId;
         });
     }
-    return _.filter(edges, function (edge) {
+    return edges.filter(function (edge) {
         return self.isValidRoad(playerId, edge);
     });
 };
@@ -83,7 +85,8 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
         intersections = components.intersections,
         settlements = self.settlements,
         roads = self.roads.byPlayerId(playerId),
-        intersection = utils.getTileIdsFromIntersectionId(intersectionId);
+        intersection = utils.getTileIdsFromIntersectionId(intersectionId),
+        isLegal;
     if (intersections.indexOf(intersectionId) < 0) {
         return;
     }
@@ -91,7 +94,7 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     // check to see if location is legal
     //     - location is not occupied
     //     - at least 2 roads  away from any other settlement.
-    var isLegal = settlements.every(function (settlement) {
+    isLegal = settlements.every(function (settlement) {
         var otherIntersection = utils.getTileIdsFromIntersectionId(settlement.intersectionId),
             count = 0;
         otherIntersection.forEach(function (point) {
@@ -102,7 +105,6 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
         return count < 2;
     });
     if (!isLegal) {
-        console.log('Settlement must be at least 2 roads away from another settlement.');
         return;
     }
     if (settlements.byPlayerId(playerId).length < 2) {
@@ -112,17 +114,12 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
     }
     //     - player has a road that is connected
     isLegal = roads.some(function (road) {
-        var roadIntersectionId = road.edge[0];
-        if (roadIntersectionId === intersectionId) {
-            return true;
-        }
-        roadIntersectionId = road.edge[1];
-        if (roadIntersectionId === intersectionId) {
+        var edge = road.edge;
+        if (edge[0] === intersectionId || edge[1] === intersectionId) {
             return true;
         }
     });
     if (!isLegal) {
-        console.log('Settlement is not connected to a road.');
         return;
     }
     return true;
@@ -140,7 +137,8 @@ Board.prototype.isValidRoad = function (playerId, edge) {
         startId = edge[0],
         endId = edge[1],
         startIntersection = utils.getTileIdsFromIntersectionId(startId),
-        endIntersection = utils.getTileIdsFromIntersectionId(endId);
+        endIntersection = utils.getTileIdsFromIntersectionId(endId),
+        isLegal;
 
     if (intersections.indexOf(startId) < 0 || intersections.indexOf(endId) < 0) {
         return;
@@ -170,18 +168,21 @@ Board.prototype.isValidRoad = function (playerId, edge) {
 
     // check to see if location is legal
     //     - connecting to another road / settlement
-    var isLegal = _.some(roads.byPlayerId(playerId), function (road) {
-        var otherEdge = road.edge,
-            intersectionId = otherEdge[0];
-        if (intersectionId === startId || intersectionId === endId) {
-            return true;
-        }
-        intersectionId = otherEdge[1];
-        if (intersectionId === startId || intersectionId === endId) {
-            return true;
-        }
-    });
-    if (!isLegal) { return; }
+    roads = roads.byPlayerId(playerId);
+    if (roads.length >= 2) {
+        isLegal = roads.some(function (road) {
+            var otherEdge = road.edge,
+                intersectionId = otherEdge[0];
+            if (intersectionId === startId || intersectionId === endId) {
+                return true;
+            }
+            intersectionId = otherEdge[1];
+            if (intersectionId === startId || intersectionId === endId) {
+                return true;
+            }
+        });
+        if (!isLegal) { return; }
+    }
     return true;
 };
 

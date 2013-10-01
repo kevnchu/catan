@@ -85,6 +85,7 @@ function drawBoard(boardData, config) {
     drawIntersections(board, intersectionCoords.reduce(function (prev, current) {
         return prev.concat(current);
     }));
+    drawRobber(boardData.diceMap[7][0]);
     svg.appendChild(board);
 }
 
@@ -169,6 +170,7 @@ function drawRoad(road) {
         intersectionId1 = edge[1],
         p0 = layout.getIntersectionCoordinatesById(intersectionId0),
         p1 = layout.getIntersectionCoordinatesById(intersectionId1);
+    roadNode.classList.add('road');
     roadNode.setAttribute('x1', p0[0]);
     roadNode.setAttribute('y1', p0[1]);
     roadNode.setAttribute('x2', p1[0]);
@@ -180,7 +182,7 @@ function drawRoad(road) {
 
 function drawRobber(tileId) {
     var board = $('svg'),
-        coordinates = tileCoordinates[tileId],
+        coordinates = layout.getTileCoordinates(tileId),
         url = 'images/robber.png';
     robber = document.createElementNS(svgNS, 'image');
     robber.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
@@ -252,7 +254,7 @@ function clearHighlighted() {
 }
 
 function moveRobber(tileId) {
-    var coordinates = tileCoordinates[tileId];
+    var coordinates = layout.getTileCoordinates(tileId);
     robber.setAttribute('x', coordinates[0]);
     robber.setAttribute('y', coordinates[1]);
 }
