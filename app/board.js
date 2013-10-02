@@ -13,6 +13,9 @@ function Board() {
     this.settlements = new Settlements();
     this.roads = new Roads();
     this.players = new Players();
+    this.longestRoad = {
+        len: 4
+    };
 }
 
 Board.prototype.addUser = function (player) {
@@ -332,11 +335,20 @@ Board.prototype.placeSettlement = function (player, intersectionId) {
 
 Board.prototype.placeRoad = function (player, edge) {
     var road = {
-        edge: edge,
-        playerId: player.id
-    };
-    this.roads.add(road);
+            edge: edge,
+            playerId: player.id
+        },
+        roads = this.roads,
+        longestRoad = this.longestRoad,
+        len;
+    roads.add(road);
     this.broadcast('update', {type: 'road', road: road});
+    len = roads.longestPath(player.id);
+    if (len > longestRoad.len) {
+        longestRoad.playerId = player.id;
+        longestRoad.len = len;
+        // TODO broadcast.
+    }
     return road;
 };
 

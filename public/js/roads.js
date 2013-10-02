@@ -9,9 +9,6 @@ Roads.prototype = {
         this.roads.push(road);
     },
 
-    longestPath: function () {
-    },
-
     byPlayerId: function (playerId) {
         return this.roads.filter(function (road) {
             return road.playerId === playerId;

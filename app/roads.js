@@ -1,5 +1,7 @@
 module.exports = Roads;
 
+var longestPath = require('./longest_path');
+
 function Roads() {
     this.roads = [];
 }
@@ -9,7 +11,13 @@ Roads.prototype = {
         this.roads.push(road);
     },
 
-    longestPath: function () {
+    longestPath: function (playerId) {
+        var edges = this.roads.filter(function (road) {
+            return road.playerId === playerId;
+        }).map(function (road) {
+            return road.edge;
+        });
+        return longestPath(edges);
     },
 
     byPlayerId: function (playerId) {
