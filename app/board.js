@@ -284,6 +284,7 @@ Board.prototype.pay = function (player, price) {
             resources[resource] -= quantity;
         }
     }
+    this.updateResources(player);
 };
 
 Board.prototype.buildSettlement = function (player, intersectionId) {
