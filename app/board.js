@@ -160,11 +160,7 @@ Board.prototype.chooseSettlement = function (player) {
         self.placeSettlement(player, intersectionId);
         deferred.resolve({player: player, intersectionId: intersectionId});
     });
-
     return deferred.promise;
-};
-
-Board.prototype.chooseCity = function (player) {
 };
 
 Board.prototype.chooseRoad = function (player, intersectionId) {
@@ -231,7 +227,7 @@ Board.prototype.nextTurn = function () {
                     self.distributeResources(tileIds[i]);
                 }
             } else {
-                // TODO handle rolling 7
+                self.moveRobber(player);
             }
             self.startTurn(player);
             socket.emit('start');
@@ -507,13 +503,9 @@ Board.prototype.initResourceLocations = function () {
 
 Board.prototype.initResourceValues = function (resourceMap) {
     var diceMap = {},
-        resourceLocations = [],
         diceValues = [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12],
         diceValue,
-        locationId,
-        resource,
-        robber,
-        i;
+        locationId;
     diceValues = utils.shuffleArray(diceValues);
     for (locationId in resourceMap) {
         if (resourceMap.hasOwnProperty(locationId)) {
@@ -530,6 +522,9 @@ Board.prototype.initResourceValues = function (resourceMap) {
         }
     }
     return diceMap;
+};
+
+Board.prototype.moveRobber = function (player) {
 };
 
 Board.prototype.rollDice = function () {
