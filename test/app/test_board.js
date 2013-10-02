@@ -1,4 +1,4 @@
-var Board = require('../../app/board.js').Board,
+var Board = require('../../app/board.js'),
     assert = require('assert'),
     sinon = require('sinon'),
     Q = require('q');
