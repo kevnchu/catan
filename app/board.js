@@ -248,22 +248,17 @@ Board.prototype.startTurn = function (player) {
         self.buildRoad(player, edge);
     });
     socket.on('settlement', function (intersectionId) {
-        // validate intersection -> pay -> place settlement
-        if (self.isValidSettlement(player.id, intersectionId)) {
-            console.log('Settlement is valid');
-            self.buildSettlement(player, intersectionId);
-        } else {
-            socket.emit('error', 'invalid settlement location');
-        }
+        self.buildSettlement(player, intersectionId);
     });
 };
 
 Board.prototype.endTurn = function (player) {
     var socket = player.socket;
+    socket.removeAllListeners('road');
     socket.removeAllListeners('settlement');
 };
 
-Board.prototype.pay = function (player, price) {
+Board.prototype.canPay = function (player, price) {
     var resources = player.resources,
         resource,
         quantity;
@@ -276,60 +271,51 @@ Board.prototype.pay = function (player, price) {
             }
         }
     }
-    // make payment
+    return true;
+};
+
+Board.prototype.pay = function (player, price) {
+    var resources = player.resources,
+        resource,
+        quantity;
     for (resource in price) {
         if (price.hasOwnProperty(resource)) {
             quantity = price[resource];
             resources[resource] -= quantity;
         }
     }
-    return true;
 };
 
 Board.prototype.buildSettlement = function (player, intersectionId) {
-    var cost = {
-        brick: 1,
-        wood: 1,
-        wheat: 1,
-        sheep: 1
-    };
-    if (this.pay(player, cost)) {
+    var cost = components.buildingCosts.settlement;
+    if (this.canPay(player, cost) && this.isValidSettlement(player.id, intersectionId)) {
+        this.pay(player, cost);
         this.placeSettlement(player, intersectionId);
-    } else {
-        // throw error.
+        return true;
     }
 };
 
 Board.prototype.buildCity = function (player, intersectionId) {
-    var cost = {
-        wheat: 2,
-        stone: 3
-    };
-    if (this.pay(player, cost)) {
+    var cost = components.buildingCosts.city;
+    if (this.canPay(player, cost) && this.isValidCity(player.id, intersectionId)) {
+        this.pay(player, cost);
         this.placeCity(player, intersectionId);
-    } else {
-        // throw error.
+        return true;
     }
 };
 
 Board.prototype.buildRoad = function (player, edge) {
-    var cost = {
-        brick: 1,
-        wood: 1
-    };
-    if (this.pay(player, cost)) {
+    var cost = components.buildingCosts.road;
+    if (this.canPay(player, cost) && this.isValidRoad(player.id, edge)) {
+        this.pay(player, cost);
         this.placeRoad(player, edge);
+        return true;
     }
 };
 
 Board.prototype.buildDevCard = function () {
-    var cost = {
-        sheep: 1,
-        stone: 1,
-        wheat: 1
-    };
-    if (this.pay(player, cost)) {
-        //this.drawDevCard(player);
+    var cost = components.buildingCosts.devCard;
+    if (this.canPay(player, cost)) {
     }
 };
 
@@ -353,11 +339,11 @@ Board.prototype.placeRoad = function (player, edge) {
     return road;
 };
 
-Board.prototype.placeCity = function (playerId, cityLocation) {
-    // Check to see if this is a valid location
-
-    // check to see if location is legal
-    //     - player must have an existing settlement at location.
+Board.prototype.placeCity = function (playerId, intersectionId) {
+    var settlement = this.settlements.byIntersectionId(intersectionId);
+    settlement.type = 'city';
+    this.broadcast('update', {type: 'city', city: settlement});
+    return settlement;
 };
 
 /**
@@ -419,7 +405,7 @@ Board.prototype.isValidRoad = function (playerId, edge) {
         endIntersection = utils.getTileIdsFromIntersectionId(endId),
         isLegal;
 
-    if (intersections.indexOf(startId) < 0 || intersections(endId) < 0) {
+    if (intersections.indexOf(startId) < 0 || intersections.indexOf(endId) < 0) {
         return;
     }
     // Make sure start and end positions are one edge length apart.
@@ -465,7 +451,12 @@ Board.prototype.isValidRoad = function (playerId, edge) {
     return true;
 };
 
-Board.prototype.transitionState = function () {
+Board.prototype.isValidCity = function (playerId, intersectionId) {
+    var settlements = this.settlements.byPlayerId(playerId);
+    return settlements.some(function (settlement) {
+        return settlement.intersectionId === intersectionId &&
+            settlement.type !== 'city';
+    });
 };
 
 Board.prototype.initResourceLocations = function () {

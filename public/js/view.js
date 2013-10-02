@@ -3,6 +3,7 @@ module.exports = {
     drawBoard: drawBoard,
     drawRoad: drawRoad,
     drawSettlement: drawSettlement,
+    drawCity: drawCity,
     highlightIntersections: highlightIntersections,
     highlightEdges: highlightEdges,
     clearHighlighted: clearHighlighted
@@ -178,6 +179,9 @@ function drawRoad(road) {
     roadNode.setAttribute('stroke', color);
     roadNode.setAttribute('stroke-width', '5px');
     board.append(roadNode);
+}
+
+function drawCity() {
 }
 
 function drawRobber(tileId) {
