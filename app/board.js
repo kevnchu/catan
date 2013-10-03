@@ -13,6 +13,7 @@ function Board() {
     this.settlements = new Settlements();
     this.roads = new Roads();
     this.players = new Players();
+    this.devCards = new DevelopmentCards();
     this.longestRoad = {
         len: 4
     };
@@ -242,12 +243,14 @@ Board.prototype.nextTurn = function () {
 Board.prototype.startTurn = function (player) {
     var self = this,
         socket = player.socket;
-    // init build channels.
     socket.on('road', function (edge) {
         self.buildRoad(player, edge);
     });
     socket.on('settlement', function (intersectionId) {
         self.buildSettlement(player, intersectionId);
+    });
+    socket.on('devcard', function () {
+        self.buildDevCard(player);
     });
 };
 
@@ -255,6 +258,7 @@ Board.prototype.endTurn = function (player) {
     var socket = player.socket;
     socket.removeAllListeners('road');
     socket.removeAllListeners('settlement');
+    socket.removeAllListeners('devcard');
 };
 
 Board.prototype.canPay = function (player, price) {
@@ -313,9 +317,12 @@ Board.prototype.buildRoad = function (player, edge) {
     }
 };
 
-Board.prototype.buildDevCard = function () {
+Board.prototype.buildDevCard = function (player) {
     var cost = components.buildingCosts.devCard;
     if (this.canPay(player, cost)) {
+        this.pay(player, cost);
+        this.drawCard(player);
+        return true;
     }
 };
 
@@ -353,6 +360,11 @@ Board.prototype.placeCity = function (playerId, intersectionId) {
     settlement.type = 'city';
     this.broadcast('update', {type: 'city', city: settlement});
     return settlement;
+};
+
+Board.prototype.drawCard = function (player) {
+    var card = this.devCards.draw();
+    player.devCards.push(card);
 };
 
 /**
