@@ -40,6 +40,7 @@ function drawBoard(boardData, config) {
         tileId,
         i;
 
+    board.setAttribute('transform', 'translate(20 20)');
     playerMap = boardData.playerMap;
     layout = new HexLayout(config.size);
     intersectionCoords = layout.getIntersectionCoordinates();
@@ -148,7 +149,7 @@ function drawEdges(board, edges) {
 }
 
 function drawSettlement(settlement) {
-    var board = $('svg'),
+    var board = $('svg g'),
         settlementNode = document.createElementNS(svgNS, 'image'),
         color = playerMap[settlement.playerId].color,
         url = 'images/' + color + '-settlement.png',
@@ -163,7 +164,7 @@ function drawSettlement(settlement) {
 }
 
 function drawRoad(road) {
-    var board = $('svg'),
+    var board = $('svg g'),
         roadNode = document.createElementNS(svgNS, 'line'),
         color = playerMap[road.playerId].color,
         edge = road.edge,
@@ -185,7 +186,7 @@ function drawCity() {
 }
 
 function drawRobber(tileId) {
-    var board = $('svg'),
+    var board = $('svg g'),
         coordinates = layout.getTileCoordinates(tileId),
         url = 'images/robber.png';
     robber = document.createElementNS(svgNS, 'image');

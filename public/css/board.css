@@ -2,9 +2,13 @@
     fill-opacity: 0;
 }
 
-.intersection:hover, .intersection.highlight {
+.intersection.highlight {
     fill: goldenrod;
     fill-opacity: 1;
+}
+
+.intersection.highlight:hover {
+    fill: green;
 }
 
 .edge {
@@ -12,30 +16,34 @@
     stroke-width: 5px;
 }
 
-.edge:hover, .edge.highlight {
+.edge.highlight {
     stroke: goldenrod;
 }
 
+.edge.highlight:hover {
+    stroke: green;
+}
+
 .brick-tile {
-    fill: darkred;
+    fill: #82251A;
 }
 
 .sheep-tile {
-    fill: lightgreen;
+    fill: #7CBE57;
 }
 
 .stone-tile {
-    fill: darkgray;
+    fill: #43656D;
 }
 
 .wheat-tile {
-    fill: lightgoldenrodyellow;
+    fill: #E9BE64;
 }
 
 .wood-tile {
-    fill: #7e4e21;
+    fill: #6D4F29;
 }
 
 .desert-tile {
-    fill: pink;
+    fill: #8B7C6B;
 }
