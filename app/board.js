@@ -89,8 +89,8 @@ Board.prototype.firstRoll = function () {
 };
 
 Board.prototype.setup = function () {
-    var players = this.players,
-        self = this,
+    var self = this,
+        players = self.players,
         resourceMap = self.resourceMap,
         playerCount = players.count(),
         deferred = Q.defer(),
@@ -182,7 +182,6 @@ Board.prototype.chooseRoad = function (player, intersectionId) {
  */
 Board.prototype.distributeResources = function (tileId) {
     var self = this,
-        // determine resource type
         resource = self.resourceMap[tileId].type,
         settlements = self.settlements,
         players = self.players,
@@ -242,16 +241,25 @@ Board.prototype.nextTurn = function () {
 
 Board.prototype.startTurn = function (player) {
     var self = this,
-        socket = player.socket;
-    socket.on('road', function (edge) {
-        self.buildRoad(player, edge);
-    });
-    socket.on('settlement', function (intersectionId) {
-        self.buildSettlement(player, intersectionId);
-    });
-    socket.on('devcard', function () {
-        self.buildDevCard(player);
-    });
+        socket = player.socket,
+        handlers = {
+            road: function (edge) {
+                self.buildRoad(player, edge);
+            },
+            settlement: function (intersectionId) {
+                self.buildSettlement(player, intersectionId);
+            },
+            devcard: function () {
+                self.buildDevCard(player);
+            }
+        },
+        channel;
+
+    for (channel in handlers) {
+        if (handlers.hasOwnProperty(channel)) {
+            socket.on(channel, handlers[channel]);
+        }
+    }
 };
 
 Board.prototype.endTurn = function (player) {
@@ -419,7 +427,6 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
 Board.prototype.isValidRoad = function (playerId, edge) {
     var intersections = components.intersections,
         roads = this.roads,
-        // Check to see if start and end are valid intersections.
         startId = edge[0],
         endId = edge[1],
         startIntersection = utils.getTileIdsFromIntersectionId(startId),
