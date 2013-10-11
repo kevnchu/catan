@@ -251,6 +251,10 @@ Board.prototype.startTurn = function (player) {
             },
             devcard: function () {
                 self.buildDevCard(player);
+            },
+            playdevcard: function () {
+                self.playDevCard(player);
+                socket.removeAllListeners('playdevcard');
             }
         },
         channel;
@@ -267,6 +271,7 @@ Board.prototype.endTurn = function (player) {
     socket.removeAllListeners('road');
     socket.removeAllListeners('settlement');
     socket.removeAllListeners('devcard');
+    socket.removeAllListeners('playdevcard');
 };
 
 Board.prototype.canPay = function (player, price) {
@@ -358,7 +363,7 @@ Board.prototype.placeRoad = function (player, edge) {
     if (len > longestRoad.len) {
         longestRoad.playerId = player.id;
         longestRoad.len = len;
-        // TODO broadcast.
+        // FIXME broadcast to clients
     }
     return road;
 };
@@ -373,6 +378,33 @@ Board.prototype.placeCity = function (playerId, intersectionId) {
 Board.prototype.drawCard = function (player) {
     var card = this.devCards.draw();
     player.devCards.push(card);
+    // FIXME update client
+};
+
+Board.prototype.playDevCard = function (player, card, data) {
+    var self = this,
+        cardTable = {
+            victory_point: self.victoryPointCard,
+            knight: self.knightCard
+        };
+    cardTable[card](player, data);
+};
+
+Board.prototype.victoryPointCard = function (player) {
+    player.points += 1;
+};
+
+Board.prototype.knightCard = function (player, tileId) {
+    this.robber = tileId;
+};
+
+Board.prototype.monopolyCard = function (player, resourceType) {
+};
+
+Board.prototype.roadBuildingCard = function (player) {
+};
+
+Board.prototype.yearOfPlentyCard = function (player, resourceType) {
 };
 
 /**

@@ -79,7 +79,7 @@ function registerControls(context) {
         buildSettlement: buildSettlement,
         buildRoad: buildRoad,
         buildCity: '',
-        buildDevCard: '',
+        buildDevCard: buildDevCard,
         playDevCard: ''
     };
     $('button', context).each(function (i, button) {
@@ -174,6 +174,8 @@ function buildSettlement() {
     if (resources.brick >= 1 && resources.sheep >= 1 && 
         resources.wheat >= 1 && resources.wood >= 1) {
         placeSettlement();
+    } else {
+        alert('you don\'t have the resources to build a settlement');
     }
 }
 
@@ -181,6 +183,17 @@ function buildRoad() {
     var resources = player.resources;
     if (resources.brick >= 1 && resources.wood >= 1) {
         placeRoad();
+    } else {
+        alert('you don\'t have the resources to build a road');
+    }
+}
+
+function buildDevCard() {
+    var resources = player.resources;
+    if (resources.sheep >= 1 && resources.stone >= 1 && resources.wheat >= 1) {
+        socket.emit('devcard');
+    } else {
+        alert('you don\'t have the resources to build a development card');
     }
 }
 
