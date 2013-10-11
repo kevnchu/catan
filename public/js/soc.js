@@ -15,7 +15,7 @@ function initSocket(socket) {
     var handlerMap = {
             'adduser': initPlayer,
             'sendchat': receiveMessage,
-            'updateresources': updateResources,
+            'updateplayer': updatePlayer,
             'start': startTurn,
             'notify': notify,
             'setup': setup,
@@ -147,9 +147,13 @@ function build(e) {
     $('.build-controls').toggleClass('hidden');
 }
 
-function updateResources(resources) {
+function updatePlayer(data) {
+    var resources = data.resources,
+        devCards = data.devCards;
     player.resources = resources;
     view.drawResources(resources);
+    player.devCards = devCards;
+    view.drawDevCards(devCards);
 }
 
 function updateBoard(data) {

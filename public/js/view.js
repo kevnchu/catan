@@ -4,6 +4,7 @@ module.exports = {
     drawRoad: drawRoad,
     drawSettlement: drawSettlement,
     drawCity: drawCity,
+    drawDevCards: drawDevCards,
     highlightIntersections: highlightIntersections,
     highlightEdges: highlightEdges,
     clearHighlighted: clearHighlighted
@@ -98,6 +99,12 @@ function drawResources(resources) {
         var type = node.getAttribute('data-resource');
         node.textContent = resources[type] || 0;
     });
+}
+
+function drawDevCards(devCards) {
+    if (devCards.length) {
+        alert(devCards);
+    }
 }
 
 function drawIntersections(board, intersections) {
