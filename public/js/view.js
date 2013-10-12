@@ -102,8 +102,23 @@ function drawResources(resources) {
 }
 
 function drawDevCards(devCards) {
+    var target = document.querySelector('.devcard-container'),
+        cardNode,
+        frag,
+        i;
+    while (target.firstChild) {
+        target.removeChild(target.firstChild);
+    }
     if (devCards.length) {
-        alert(devCards);
+        frag = document.createDocumentFragment();
+        cardNode = document.createElement('span');
+        cardNode.classList.add('.devcard');
+        for (i = 0; i < devCards.length; i++) {
+            cardNode = cardNode.cloneNode();
+            cardNode.textContent = devCards[i];
+            frag.appendChild(cardNode);
+        }
+        target.appendChild(frag);
     }
 }
 
