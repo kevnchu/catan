@@ -209,7 +209,7 @@ Board.prototype.updateResources = function (player) {
 };
 
 Board.prototype.updateDevCards = function (player) {
-    player.socket.emit('updateresources', player.devCards);
+    player.socket.emit('updatedevcards', player.devCards);
 };
 
 /**
