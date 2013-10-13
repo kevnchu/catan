@@ -111,7 +111,7 @@ Board.prototype.setup = function () {
                     if (resource !== 'desert')
                         player.resources[resource]++;
                 }
-                self.updatePlayer(player);
+                self.updateResources(player);
             }
             return data;
         })
@@ -200,15 +200,16 @@ Board.prototype.distributeResources = function (tileId) {
         }
     });
     for (i = 0; i < updateQueue.length; i++) {
-        self.updatePlayer(players.getPlayer(updateQueue[i]));
+        self.updateResources(players.getPlayer(updateQueue[i]));
     }
 };
 
-Board.prototype.updatePlayer = function (player) {
-    player.socket.emit('updateplayer', {
-        resources: player.resources,
-        devCards: player.devCards
-    });
+Board.prototype.updateResources = function (player) {
+    player.socket.emit('updateresources', player.resources);
+};
+
+Board.prototype.updateDevCards = function (player) {
+    player.socket.emit('updateresources', player.devCards);
 };
 
 /**
@@ -303,7 +304,7 @@ Board.prototype.pay = function (player, price) {
             resources[resource] -= quantity;
         }
     }
-    this.updatePlayer(player);
+    this.updateResources(player);
 };
 
 Board.prototype.buildSettlement = function (player, intersectionId) {
@@ -381,7 +382,7 @@ Board.prototype.placeCity = function (playerId, intersectionId) {
 Board.prototype.drawCard = function (player) {
     var card = this.devCards.draw();
     player.devCards.push(card);
-    this.updatePlayer(player);
+    this.updateDevCards(player);
 };
 
 Board.prototype.playDevCard = function (player, card, data) {
