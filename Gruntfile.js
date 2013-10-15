@@ -16,12 +16,14 @@ module.exports = function (grunt) {
                 browser: true,
                 globals: {
                     require: true,
+                    module: true,
                     describe: true,
                     it: true,
                     _: true,
                     $: true,
                     __dirname: true
-                }
+                },
+                force: true
             },
         },
         mochaTest: {

@@ -2,12 +2,10 @@ var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
-    path = require('path'),
     fs = require('fs'),
     browserify = require('browserify'),
     Board = require('./app/board'),
     Player = require('./app/player'),
-    utils = require('./app/utils'),
     baseDir = __dirname + '/public',
     boards = {};
 
