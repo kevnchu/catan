@@ -3,7 +3,6 @@ var express = require('express'),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
     fs = require('fs'),
-    browserify = require('browserify'),
     Board = require('./app/board'),
     Player = require('./app/player'),
     baseDir = __dirname + '/public',
@@ -12,10 +11,6 @@ var express = require('express'),
 server.listen(8787);
 
 app.configure(function () {
-    var output = fs.createWriteStream(baseDir + '/bundle.js'),
-        b = browserify();
-    b.add(baseDir + '/js/soc.js');
-    b.bundle().pipe(output);
     app.use(app.router);
     app.use(express.static(baseDir));
 });
