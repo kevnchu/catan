@@ -21,7 +21,8 @@ module.exports = function (grunt) {
                     it: true,
                     _: true,
                     $: true,
-                    __dirname: true
+                    __dirname: true,
+                    pubsubz: true
                 },
                 force: true
             },
@@ -39,11 +40,17 @@ module.exports = function (grunt) {
                 src: ['public/js/soc.js'],
                 dest: 'public/bundle.js'
             }
+        },
+        exec: {
+            run: {
+                cmd: 'node app'
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-browserify');
-    grunt.registerTask('default', ['jshint', 'mochaTest', 'browserify']);
+    grunt.loadNpmTasks('grunt-exec');
+    grunt.registerTask('default', ['jshint', 'mochaTest', 'browserify', 'exec']);
 };

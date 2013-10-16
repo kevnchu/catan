@@ -231,7 +231,11 @@ Board.prototype.nextTurn = function () {
                     self.distributeResources(tileIds[i]);
                 }
             } else {
-                self.moveRobber(player);
+                self.moveRobber(player)
+                    .then(function (tileId) {
+                        // steal resource from player who has a settlement
+                        // adjacent to tileId
+                    });
             }
             self.startTurn(player);
             socket.emit('start');
@@ -412,24 +416,39 @@ Board.prototype.yearOfPlentyCard = function (player, resourceType) {
 };
 
 /**
- * placement methods must trigger propagate event.
+ * returns true if player is done with initial setup.
+ * @param {string} playerId
  */
-Board.prototype.isValidSettlement = function (playerId, intersectionId) {
-    // Check to see if this is a valid settlement location.
-    var self = this,
-        intersections = components.intersections,
-        settlements = self.settlements,
-        roads = self.roads.byPlayerId(playerId),
-        intersection = utils.getTileIdsFromIntersectionId(intersectionId),
-        isLegal;
-    if (intersections.indexOf(intersectionId) < 0) {
-        return;
-    }
-    
-    // check to see if location is legal
-    //     - location is not occupied
-    //     - at least 2 roads  away from any other settlement.
-    isLegal = settlements.every(function (settlement) {
+Board.prototype.isSetupComplete = function (playerId) {
+    // to see if player has completed setup, check to see they have placed
+    // at least 2 roads.
+    return this.roads.byPlayerId(playerId).length >= 2;
+};
+
+Board.prototype.hasConnectedRoad = function (playerId, intersectionId) {
+    var roads = this.roads.byPlayerId(playerId);
+    return roads.some(function (road) {
+        var edge = road.edge;
+        if (edge[0] === intersectionId || edge[1] === intersectionId) {
+            return true;
+        }
+    });
+};
+
+Board.prototype.isIntersection = function (intersectionId) {
+    var intersections = components.intersections;
+    return intersections.indexOf(intersectionId) >= 0;
+};
+
+/**
+ * returns true if there is not a settlement on the given intersection and
+ * there are no settlements < 2 roads away.
+ * @param {string} intersectionId
+ */
+Board.prototype.isIntersectionOccupied = function (intersectionId) {
+    var settlements = this.settlements,
+        intersection = utils.getTileIdsFromIntersectionId(intersectionId);
+    return settlements.some(function (settlement) {
         var otherIntersection = utils.getTileIdsFromIntersectionId(settlement.intersectionId),
             count = 0;
         otherIntersection.forEach(function (point) {
@@ -437,84 +456,75 @@ Board.prototype.isValidSettlement = function (playerId, intersectionId) {
                 count++;
             }
         });
-        return count < 2;
+        return count >= 2;
     });
-    if (!isLegal) {
-        return;
-    }
-    if (settlements.byPlayerId(playerId).length < 2) {
-        // if we're in the setup phase, don't have the requirement that settlement
-        // must touch road.
-        return true;
-    }
-    //     - player has a road that is connected
-    isLegal = roads.some(function (road) {
-        var edge = road.edge;
-        if (edge[0] === intersectionId || edge[1] === intersectionId) {
-            return true;
-        }
-    });
-    if (!isLegal) {
-        return;
-    }
-    return true;
 };
 
-Board.prototype.isValidRoad = function (playerId, edge) {
-    var intersections = components.intersections,
-        roads = this.roads,
-        startId = edge[0],
-        endId = edge[1],
-        startIntersection = utils.getTileIdsFromIntersectionId(startId),
-        endIntersection = utils.getTileIdsFromIntersectionId(endId),
-        isLegal;
+/**
+ * checks to see if player can build a settlement at given intersection
+ * @param {string} playerId
+ * @param {string} intersectionId
+ */
+Board.prototype.isValidSettlement = function (playerId, intersectionId) {
+    var self = this;
+    return self.isIntersection(intersectionId) &&
+        !self.isIntersectionOccupied(intersectionId) &&
+        (self.isSetupComplete(playerId) ?
+            self.hasConnectedRoad(playerId, intersectionId) : true);
+};
 
-    if (intersections.indexOf(startId) < 0 || intersections.indexOf(endId) < 0) {
-        return;
-    }
+Board.prototype.isEdge = function (edge) {
     // Make sure start and end positions are one edge length apart.
-    var count = 2;
+    if (!this.isIntersection(edge[0]) || !this.isIntersection(edge[1])) {
+        return false;
+    }
+    var count = 2,
+        startIntersection = utils.getTileIdsFromIntersectionId(edge[0]),
+        endIntersection = utils.getTileIdsFromIntersectionId(edge[1]);
     startIntersection.forEach(function (tileId) {
         if (endIntersection.indexOf(tileId) >= 0) {
             count--;
         }
     });
-    if (count) { return; }
+    return !count;
+};
 
-    //     - not already an existing road here.
-    isLegal = roads.every(function (road) {
+Board.prototype.isEdgeOccupied = function (edge) {
+    var roads = this.roads,
+        startId = edge[0],
+        endId = edge[1];
+        
+    return roads.some(function (road) {
         var otherEdge = road.edge,
             intersectionId = otherEdge[0];
         if (startId === intersectionId || endId === intersectionId) {
             intersectionId = otherEdge[1];
             if (startId === intersectionId || endId === intersectionId) {
-                return false;
+                return true;
             }
         }
-        return true;
     });
-    if (!isLegal) { return; }
-
-    // check to see if location is legal
-    //     - connecting to another road / settlement
-    roads = roads.byPlayerId(playerId);
-    if (roads.length >= 2) {
-        isLegal = roads.some(function (road) {
-            var otherEdge = road.edge,
-                intersectionId = otherEdge[0];
-            if (intersectionId === startId || intersectionId === endId) {
-                return true;
-            }
-            intersectionId = otherEdge[1];
-            if (intersectionId === startId || intersectionId === endId) {
-                return true;
-            }
-        });
-        if (!isLegal) { return; }
-    }
-    return true;
 };
 
+/**
+ * check to see if player can build a road on the given edge.
+ * @param {string} playerId
+ * @param {array} edge
+ */
+Board.prototype.isValidRoad = function (playerId, edge) {
+    var self = this;
+    return self.isEdge(edge) &&
+        !self.isEdgeOccupied(edge) &&
+        (self.isSetupComplete(playerId) ?
+            self.hasConnectedRoad(playerId, edge[0]) || self.hasConnectedRoad(playerId, edge[1]) :
+            true);
+};
+
+/**
+ * check to see if player can build a city on given intersection
+ * @param {string} playerId
+ * @param {string} intersectionId
+ */
 Board.prototype.isValidCity = function (playerId, intersectionId) {
     var settlements = this.settlements.byPlayerId(playerId);
     return settlements.some(function (settlement) {
@@ -579,7 +589,25 @@ Board.prototype.initResourceValues = function (resourceMap) {
     return diceMap;
 };
 
+/**
+ * prompt player to choose robber location
+ * @param {object} player
+ */
 Board.prototype.moveRobber = function (player) {
+    // return a promise. when we receive client response, resolve promise
+    var self = this,
+        deferred = Q.defer();
+    player.socket.emit('moverobber');
+    player.socket.once('moverobber', function (tileId) {
+        tileId = +tileId;
+        if (tileId >= 0 && tileId <= 18) {
+            self.robber = tileId;
+            deferred.resolve(tileId);
+        } else {
+            deferred.reject(new Error('Invalid robber location'));
+        }
+    });
+    return deferred.promise;
 };
 
 Board.prototype.rollDice = function () {

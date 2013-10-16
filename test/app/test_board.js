@@ -1,4 +1,5 @@
 var Board = require('../../app/board.js'),
+    Roads = require('../../app/roads.js'),
     assert = require('assert'),
     sinon = require('sinon'),
     Q = require('q');
@@ -37,10 +38,6 @@ describe('Board', function () {
             player = {
                 id: 'test',
                 name: 'test',
-                settlements: [],
-                roads: [{
-                    edge: ['1,12,13', '0,1,12']
-                }],
                 resources: {
                     wood: 0,
                     wheat: 0,
@@ -56,11 +53,11 @@ describe('Board', function () {
             var intersectionId;
             var settlement;
             intersectionId = '1,14,5';
-            settlement = b.isValidSettlement(player, intersectionId);
+            settlement = b.isIntersection(intersectionId);
             assert.ok(!settlement);
 
             intersectionId = '1,12,13';
-            settlement = b.isValidSettlement(player, intersectionId);
+            settlement = b.isIntersection(intersectionId);
             assert.ok(settlement);
         });
 
@@ -69,37 +66,47 @@ describe('Board', function () {
                 intersectionId: '1,12,13'
             }];
             var intersectionId = '1,12,13';
-            var settlement = b.isValidSettlement(player, intersectionId);
-            assert.ok(!settlement);
+            var isOccupied = b.isIntersectionOccupied(intersectionId);
+            assert.ok(isOccupied);
 
             b.settlements = [{
                 intersectionId: '0,1,12'
             }];
-            settlement = b.isValidSettlement(player, intersectionId);
-            assert.ok(!settlement);
+            isOccupied = b.isIntersectionOccupied(intersectionId);
+            assert.ok(isOccupied);
+
+            b.settlements = [{
+                intersectionId: '2,3,13'
+            }];
+            isOccupied = b.isIntersectionOccupied(intersectionId);
+            assert.ok(!isOccupied);
         });
 
         it('should check that intersection is connected to a road', function () {
-            player.roads = [{
+            var roads = b.roads;
+            roads.roads = [{
+                playerId: player.id,
                 edge: ['5,14,15','5,6,15']
             }];
             var intersectionId = '1,12,13';
-            var settlement = b.isValidSettlement(player, intersectionId);
-            assert.ok(!settlement);
+            var test = b.hasConnectedRoad(player.id, intersectionId);
+            assert.ok(!test);
 
-            player.roads = [{
+            roads.roads = [{
+                playerId: player.id,
                 edge: ['1,12,13', '0,1,12']
             }];
             intersectionId = '1,12,13';
-            settlement = b.isValidSettlement(player, intersectionId);
-            assert.ok(settlement);
+            test = b.hasConnectedRoad(player.id, intersectionId);
+            assert.ok(test);
 
-            player.roads = [{
+            roads.roads = [{
+                playerId: player.id,
                 edge: ['0,1,12','1,12,13']
             }];
             intersectionId = '1,12,13';
-            settlement = b.isValidSettlement(player, intersectionId);
-            assert.ok(settlement);
+            test = b.hasConnectedRoad(player.id, intersectionId);
+            assert.ok(test);
         });
     });
 
@@ -176,14 +183,19 @@ describe('Board', function () {
         var player;
         beforeEach(function () {
             player = {
+                id: 'test',
                 resources: {
                     wood: 0,
                     wheat: 0,
                     brick: 0,
                     stone: 0,
                     sheep: 0
+                },
+                socket: {
+                    emit: sinon.stub()
                 }
             };
+            b.players.addPlayer(player);
             b.resourceMap = {
                 '0': { type: 'brick' },
                 '1': { type: 'wheat' },
@@ -207,21 +219,16 @@ describe('Board', function () {
             };
         });
         it('should add one to the corresponding resource type.', function () {
-            b.distributeResources(player, [0]);
-            assert.equal(1, player.resources.wood);
-            b.distributeResources(player, [15]);
-            assert.equal(1, player.resources.brick);
-            b.distributeResources(player, [4]);
+            b.settlements.settlements = [{
+                intersectionId: '1,12,13',
+                playerId: player.id
+            }];
+            b.distributeResources(1);
             assert.equal(1, player.resources.wheat);
-            b.distributeResources(player, [12]);
-            assert.equal(1, player.resources.stone);
-            b.distributeResources(player, [10]);
-            assert.equal(1, player.resources.sheep);
-        });
-
-        it('should add 2 resources for a city.', function () {
-            b.distributeResources(player, [0], true);
-            assert.equal(2, player.resources.wood);
+            b.distributeResources(10);
+            assert.equal(0, player.resources.stone);
+            b.distributeResources(12);
+            assert.equal(1, player.resources.brick);
         });
 
         it('should notify players when they recieve new resources.', function () {

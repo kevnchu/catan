@@ -149,8 +149,6 @@ function drawIntersections(board, intersections) {
 function drawEdges(board, edges) {
     var edgeElement = document.createElementNS(svgNS, 'line'),
         edge,
-        startId,
-        endId,
         p0,
         p1,
         i;

@@ -38,6 +38,7 @@ var handleConnection = function (socket) {
             socket.emit('joinboard', boardId);
         } else {
             // invalid board Id
+            socket.emit('error', 'Invalid board id.');
         }
     });
 
@@ -59,6 +60,7 @@ var handleConnection = function (socket) {
         boards[1] = board;
         board.addUser(player);
         socket.emit('joinboard', boardId);
+        // generate url that lets others join this game.
     });
 
     socket.on('disconnect', function () {
