@@ -8,8 +8,8 @@ var Q = require('q'),
     utils = require('./utils'),
     components = require('./components');
 
-function Board() {
-    this.id = utils.createUniqueId();
+function Board(id) {
+    this.id = id;
     this.settlements = new Settlements();
     this.roads = new Roads();
     this.players = new Players();
@@ -17,15 +17,23 @@ function Board() {
     this.longestRoad = {
         len: 4
     };
+    this.readyCount = 0;
+    this.isStarted = false;
 }
 
 Board.prototype.addUser = function (player) {
-    var players = this.players;
+    var self = this,
+        players = self.players;
     players.addPlayer(player);
-    this.notify(player.name + ' joined the game');
-    if (players.count() === 2) {
-        this.initialize();
-    }
+    self.notify(player.name + ' joined the game');
+    player.socket.once('ready', function () {
+        var playerCount = players.count();
+        self.readyCount++;
+        if (self.readyCount === playerCount && playerCount > 2) {
+            self.isStarted = true;
+            self.initialize();
+        }
+    });
 };
 
 Board.prototype.removeUser = function (id) {

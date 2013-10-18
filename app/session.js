@@ -25,7 +25,7 @@ function handleConnection(socket) {
         board = boards[boardId];
         if (board) { 
             if (!board.addUser) {
-                board = boards[boardId] = new Board();
+                board = boards[boardId] = new Board(boardId);
             }
             board.addUser(player);
             socket.emit('joinboard', boardId);

@@ -33,6 +33,10 @@ function initSocket(socket) {
         socket.emit('joinboard', boardId);
     });
 
+    socket.on('disconnect', function () {
+        updateStatus('Disconnected from server');
+    });
+
     for (channel in handlerMap) {
         if (handlerMap.hasOwnProperty(channel)) {
             socket.on(channel, handlerMap[channel]);
@@ -56,7 +60,7 @@ function setup(boardData) {
         }
     }
     boardData.tileDiceValueMap = tileDiceValueMap;
-
+    updateStatus('');
     $('.board-container').removeClass('hidden');
     board = new Board(boardData);
     view.drawBoard(boardData, {size: 60});
@@ -66,6 +70,8 @@ function setup(boardData) {
 function registerControls(context) {
     // maps buttons to click handlers
     var clickHandlerMap = {
+        ready: ready,
+        roll: handleRoll,
         build: build,
         sendChat: sendChat,
         trade: '',
@@ -108,6 +114,10 @@ function notify(data) {
     alert(data.msg);
 }
 
+function updateStatus(message) {
+    $('#status-container').text(message);
+}
+
 function sendChat() {
     var chatInput = $('.chat-input'),
         msg = chatInput[0].value;
@@ -131,10 +141,17 @@ function roll() {
     var rollButton = $('.roll-button');
     alert('roll the dice.');
     rollButton.removeClass('hidden');
-    rollButton.on('click', function (e) {
-        socket.emit('roll');
-        rollButton.addClass('hidden');
-    });
+}
+
+function handleRoll() {
+    socket.emit('roll');
+    rollButton.addClass('hidden');
+}
+
+function ready() {
+    socket.emit('ready');
+    $('#ready-button').addClass('hidden');
+    updateStatus('Waiting');
 }
 
 function build(e) {
