@@ -6,7 +6,7 @@ var view = require('./view'),
     socket;
 
 function createSocket() {
-    var socket = io.connect(window.location.href);
+    var socket = io.connect(location.origin);
     initSocket(socket);
     return socket;
 }
@@ -28,16 +28,9 @@ function initSocket(socket) {
         channel;
 
     socket.on('connect', function () {
+        var boardId = location.search.split('=').pop();
         socket.emit('adduser', prompt("What's your name?"));
-
-        $('.create-board').on('click', function () {
-            socket.emit('createboard');
-        });
-
-        $('.join-board').on('click', function () {
-            var boardId = prompt('Enter game id');
-            socket.emit('joinboard', boardId);
-        });
+        socket.emit('joinboard', boardId);
     });
 
     for (channel in handlerMap) {

@@ -9,7 +9,7 @@ To run the server on localhost
 git clone https://github.com/kevnchu/catan.git
 cd catan
 npm install
-grunt
+grunt build
 node app
 ```
 

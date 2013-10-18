@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SoC</title>
+        <link href="css/style.css" rel="stylesheet" type="text/css" media="all">
+        <link href="css/board.css" rel="stylesheet" type="text/css" media="all">
+    </head>
+    <body>
+
+        <!-- Board -->
+        <div class="board-container hidden">
+            <svg width="600" height="600" viewPort="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg">
+            </svg>
+        </div>
+
+        <div class="resources-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brick</th>
+                        <th>Sheep</th>
+                        <th>Stone</th>
+                        <th>Wheat</th>
+                        <th>Wood</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-resource="brick">0</td>
+                        <td data-resource="sheep">0</td>
+                        <td data-resource="stone">0</td>
+                        <td data-resource="wheat">0</td>
+                        <td data-resource="wood">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="devcard-container">
+        </div>
+
+        <div class="board-controls">
+
+            <!-- Roll -->
+            <button class="roll-button hidden" data-click="roll">Roll</button>
+
+            <!-- Actions -->
+            <div class="pane action-controls hidden" >
+                <button class="build-button" data-click="build">Build</button>
+                <button class="devcard-button" data-click="playDevCard">Play Development Card</button>
+                <button class="trade-button" data-click="trade">Trade</button>
+                <button class="end-button" data-click="endTurn">End Turn</button>
+            </div>
+
+            <!-- Building -->
+            <div class="pane build-controls hidden">
+                <button class="build-settlement-button" data-click="buildSettlement">Settlement</button>
+                <button class="build-road-button" data-click="buildRoad">Road</button>
+                <button class="build-city-button" data-click="buildCity">City</button>
+                <button class="build-devcard-button" data-click="buildDevCard">Development Card</button>
+            </div>
+
+            <!-- Trading -->
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-container">
+            <div class="chat-log"></div>
+            <div class="chat-controls">
+                <input type="text" class="chat-input" />
+                <button class="chat-button" data-click="sendChat">Send</button>
+            </div>
+        </div>
+        <script type="text/javascript" src="js/lib/jquery-1.9.0.js"></script>
+        <script type="text/javascript" src="js/lib/lodash.js"></script>
+        <script type="text/javascript" src="js/lib/pubsubz.js"></script>
+        <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="bundle.js"></script>
+    </body>
+</html>
