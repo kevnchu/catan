@@ -1,31 +1,56 @@
-body {
+.left {
+    float: left;
+    width: 596px;
+    min-height: 600px;
+}
+
+.right {
+    margin-left: 610px;
+    min-height: 600px;
 }
 
 .board-container {
-    margin: 30px;
-    float: left;
+    height: 560px;
+    background-color: #DEF;
+    border-radius: .3em;
+    box-shadow: 0 0 .4em rgba(0,0,0,.1);
+}
+
+.board-controls {
+
+}
+
+.resources-container {
+    vertical-align: top;
 }
 
 .chat-container {
-    clear: left;
-    margin: 30px;
+    display: inline-block;
     width: 500px;
-    outline: solid 1px #444;
+    border-radius: .3em;
+    box-shadow: 0 0 .4em rgba(0, 0, 0, 0.1);
+    padding: 13px 0px 0px 0px;
+    background-color: lightgrey;
 }
 
 .chat-log {
-    width:400px;
-    height:250px;
+    width: 473px;
+    height: 250px;
+    overflow-y: scroll;
+    margin: 0px 10px;
+    background-color: #FFF;
+    border-radius: .3em;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+.chat-input {
+    background-color: #FFF;
 }
 
 .chat-controls {
     margin: 5px;
     text-align: center;
-}
-
-.chat-input {
-    height: 2em;
-    width: 400px;
 }
 
 .action-container, .options-container {
@@ -35,4 +60,54 @@ body {
 
 .hidden {
     display: none;
+}
+
+.intersection {
+    fill-opacity: 0;
+}
+
+.intersection.highlight {
+    fill: goldenrod;
+    fill-opacity: 1;
+}
+
+.intersection.highlight:hover {
+    fill: green;
+}
+
+.edge {
+    stroke: transparent;
+    stroke-width: 5px;
+}
+
+.edge.highlight {
+    stroke: goldenrod;
+}
+
+.edge.highlight:hover {
+    stroke: green;
+}
+
+.brick-tile {
+    fill: #82251A;
+}
+
+.sheep-tile {
+    fill: #7CBE57;
+}
+
+.stone-tile {
+    fill: #43656D;
+}
+
+.wheat-tile {
+    fill: #E9BE64;
+}
+
+.wood-tile {
+    fill: #6D4F29;
+}
+
+.desert-tile {
+    fill: #8B7C6B;
 }

@@ -2,9 +2,9 @@
 <html>
     <head>
         <title>SoC</title>
+        <link href="css/common.css" rel="stylesheet" type="text/css" media="all">
         <style>
             body {
-                font-family: sans-serif;
                 background-color: #F9F8FA;
                 color: #211922
             }
@@ -12,40 +12,16 @@
             .container {
                 margin: 2em 1em;
             }
-
-            .btn {
-                text-decoration: none;
-                display: inline-block;
-                padding: .25em .5em;
-                color: #FFF;
-                background-color: #E95C33;
-                background: linear-gradient(to bottom,#E95C33 0,#E53B2C 100%);
-                border-radius: .3em;
-                border: none;
-                font-size: 1.5em;
-                box-sizing: border-box;
-                width: 150px;
-                margin: 0px 8px 10px 0px;
-            }
-
-            .text-input {
-                width: 296px;
-                padding: .25em .5em;
-                font-size: 1.5em;
-                border-radius: .3em;
-                border: none;
-                background-color: #DDD;
-            }
         </style>
     </head>
     <body>
         <div class="container">
             <div>
-                <a href="board" class="btn">New game</a>
+                <a href="board" class="btn inline-block">New game</a>
             </div>
             <div>
                 <form action="/board" id="join_game_form">
-                    <button type="submit" class="btn" id="submit_game">
+                    <button type="submit" class="btn inline-block" id="submit_game">
                         Join game
                     </button>
                     <input type="text" class="text-input" autocomplete="off" id="game_id" name="id" placeholder="Enter game ID">

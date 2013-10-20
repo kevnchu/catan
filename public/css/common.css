@@ -1,0 +1,32 @@
+body {
+    font-family: sans-serif;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.btn {
+    text-decoration: none;
+    padding: .25em .5em;
+    color: #FFF;
+    background-color: #E95C33;
+    background: linear-gradient(to bottom,#E95C33 0,#E53B2C 100%);
+    border-radius: .3em;
+    border: none;
+    font-size: 1.5em;
+    box-sizing: border-box;
+    width: 150px;
+    margin: 0px 8px 10px 0px;
+    box-shadow: 0 0 .4em rgba(0,0,0,.1);
+}
+
+.text-input {
+    width: 296px;
+    padding: .25em .5em;
+    font-size: 1.5em;
+    border-radius: .3em;
+    border: none;
+    background-color: #DDD;
+    box-shadow: 0 0 .4em rgba(0,0,0,.1);
+}

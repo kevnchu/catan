@@ -61,7 +61,6 @@ function setup(boardData) {
     }
     boardData.tileDiceValueMap = tileDiceValueMap;
     updateStatus('');
-    $('.board-container').removeClass('hidden');
     board = new Board(boardData);
     view.drawBoard(boardData, {size: 60});
     view.drawResources(player.resources);
@@ -138,14 +137,13 @@ function receiveMessage(data) {
 }
 
 function roll() {
-    var rollButton = $('.roll-button');
     alert('roll the dice.');
-    rollButton.removeClass('hidden');
+    $('.roll-button').removeClass('hidden');
 }
 
 function handleRoll() {
     socket.emit('roll');
-    rollButton.addClass('hidden');
+    $('.roll-button').addClass('hidden');
 }
 
 function ready() {
