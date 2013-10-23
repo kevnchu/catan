@@ -20,6 +20,15 @@
 
 }
 
+.player-container img {
+    height: 15px;
+    width: 15px;
+}
+
+.player-info span {
+    margin: 5px 5px 0px 0px;
+}
+
 .resources-container {
     vertical-align: top;
 }

@@ -179,6 +179,7 @@ describe('Board', function () {
         beforeEach(function () {
             player = {
                 id: 'test',
+                name: 'test',
                 resources: {
                     wood: 0,
                     wheat: 0,

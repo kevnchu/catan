@@ -6,23 +6,26 @@ var express = require('express'),
     baseDir = __dirname + '/public';
 
 app.configure(function () {
+    app.use(app.router);
     app.use(express.static(baseDir));
-    app.get('/', function (req, res) {
-        res.sendfile(baseDir + '/index.html');
-    });
-    app.get('/board*', function (req, res) {
-        var boardId = req.query.id;
-        if (boardId) {
-            if (session.isValidId(boardId)) {
-                res.sendfile(baseDir + '/board.html');
-            } else {
-                res.end('Invalid board id.');
-            }
+});
+
+app.get('/', function (req, res) {
+    res.sendfile(baseDir + '/index.html');
+});
+
+app.get('/board*', function (req, res) {
+    var boardId = req.query.id;
+    if (boardId) {
+        if (session.isValidId(boardId)) {
+            res.sendfile(baseDir + '/board.html');
         } else {
-            boardId = session.createSession();
-            res.redirect('/board.html?id=' + boardId);
+            res.end('Invalid board id.');
         }
-    });
+    } else {
+        boardId = session.createSession();
+        res.redirect('/board.html?id=' + boardId);
+    }
 });
 
 server.listen(8787);

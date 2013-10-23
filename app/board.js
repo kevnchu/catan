@@ -17,6 +17,9 @@ function Board(id) {
     this.longestRoad = {
         len: 4
     };
+    this.largestArmy = {
+        count: 3
+    };
     this.readyCount = 0;
     this.isStarted = false;
 }
@@ -220,6 +223,15 @@ Board.prototype.updateDevCards = function (player) {
     player.socket.emit('updatedevcards', player.devCards);
 };
 
+Board.prototype.updateVictoryPoints = function (player, points) {
+    player.points += points;
+    this.updatePlayerInfo(player);
+};
+
+Board.prototype.updatePlayerInfo = function (player) {
+    this.broadcast('update', {type: 'player', player: player.serialize()});
+};
+
 /**
  * main game loop.
  */
@@ -362,6 +374,7 @@ Board.prototype.placeSettlement = function (player, intersectionId) {
     };
     this.settlements.add(settlement);
     this.broadcast('update', {type: 'settlement', settlement: settlement});
+    this.updateVictoryPoints(player, 1);
     return settlement;
 };
 
@@ -375,19 +388,37 @@ Board.prototype.placeRoad = function (player, edge) {
         len;
     roads.add(road);
     this.broadcast('update', {type: 'road', road: road});
-    len = roads.longestPath(player.id);
+    this.updateLongestRoad(player);
+    return road;
+};
+
+Board.prototype.updateLongestRoad = function (player) {
+    var longestRoad = this.longestRoad,
+        len = this.roads.longestPath(player.id),
+        players = this.players,
+        old;
     if (len > longestRoad.len) {
+        if (longestRoad.playerId) {
+            old = players.getPlayer(longestRoad.playerId);
+            old.hasLongestRoad = false;
+        }
         longestRoad.playerId = player.id;
         longestRoad.len = len;
-        // FIXME broadcast to clients
+        player.hasLongestRoad = true;
+        if (!old) {
+            this.updateVictoryPoints(player, 2);
+        } else if (old.id !== player.id) {
+            this.updateVictoryPoints(old, -2);
+            this.updateVictoryPoints(player, 2);
+        }
     }
-    return road;
 };
 
 Board.prototype.placeCity = function (playerId, intersectionId) {
     var settlement = this.settlements.byIntersectionId(intersectionId);
     settlement.type = 'city';
     this.broadcast('update', {type: 'city', city: settlement});
+    this.updateVictoryPoints(player, 1);
     return settlement;
 };
 
@@ -407,11 +438,34 @@ Board.prototype.playDevCard = function (player, card, data) {
 };
 
 Board.prototype.victoryPointCard = function (player) {
-    player.points += 1;
+    this.updateVictoryPoints(player, 1);
 };
 
 Board.prototype.knightCard = function (player, tileId) {
     this.robber = tileId;
+    player.knights += 1;
+    this.updatePlayerInfo(player);
+    this.updateLargestArmy(player);
+};
+
+Board.prototype.updateLargestArmy = function (player) {
+    var largestArmy = this.largestArmy,
+        old;
+    if (player.knights > largestArmy.count) {
+        if (largestArmy.playerId) {
+            old = players.getPlayer(largestArmy.playerId);
+            old.hasLargestArmy = false;
+        }
+        largestArmy.count = player.knights;
+        largestArmy.playerId = player.id;
+        player.hasLargestArmy = true;
+        if (!old) {
+            this.updateVictoryPoints(player, 2);
+        } else if (old.id !== player.id) {
+            this.updateVictoryPoints(old, -2);
+            this.updateVictoryPoints(player, 2);
+        }
+    }
 };
 
 Board.prototype.monopolyCard = function (player, resourceType) {

@@ -14,7 +14,6 @@ function handleConnection(socket) {
         player;
 
     socket.on('adduser', function (name) {
-        console.log('adding new player', name);
         player = new Player(name, socket);
         socket.emit('adduser', player.serialize());
     });

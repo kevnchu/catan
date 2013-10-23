@@ -180,6 +180,10 @@ function updateBoard(data) {
             board.addCity(data.city);
             view.drawCity(data.city);
             break;
+        case 'player':
+            board.player = data.player;
+            view.updatePlayerInfo(data.player);
+            break;
     }
 }
 

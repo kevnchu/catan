@@ -8,6 +8,7 @@ function Player(name, socket) {
     if (socket)
         this.socket = socket;
     this.points = 0;
+    this.knights = 0;
     this.resources = {
         brick: 4,
         sheep: 4,
@@ -17,6 +18,8 @@ function Player(name, socket) {
     };
     this.devCards = [];
     this.color = null;
+    this.hasLongestRoad = false;
+    this.hasLargestArmy = false;
 }
 
 Player.prototype = {

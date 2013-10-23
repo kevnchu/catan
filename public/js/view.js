@@ -4,6 +4,7 @@ module.exports = {
     drawRoad: drawRoad,
     drawSettlement: drawSettlement,
     drawCity: drawCity,
+    updatePlayerInfo: updatePlayerInfo,
     drawDevCards: drawDevCards,
     highlightIntersections: highlightIntersections,
     highlightEdges: highlightEdges,
@@ -12,6 +13,7 @@ module.exports = {
 
 var HexLayout = require('./hex_layout'),
     components = require('./components'),
+    utils = require('./utils'),
     svgNS = 'http://www.w3.org/2000/svg',
     catanNS = 'catan',
     robber,
@@ -89,6 +91,7 @@ function drawBoard(boardData, config) {
         return prev.concat(current);
     }));
     drawRobber(boardData.diceMap[7][0]);
+    drawPlayers(playerMap);
     svg.appendChild(board);
 }
 
@@ -119,6 +122,42 @@ function drawDevCards(devCards) {
             frag.appendChild(cardNode);
         }
         target.appendChild(frag);
+    }
+}
+
+function drawPlayers(playerMap) {
+    var player,
+        playerId,
+        template = utils.template,
+        frag = document.createDocumentFragment(),
+        templateStr = '<div class="player-info" data-player-id="{{id}}">' +
+                '<img src="images/{{color}}-settlement.png" />' +
+                '<span class="player-name">{{name}}</span>' +
+                '<span>Knights: <span class="knight-count">{{knights}}</span></span>' +
+                '<span>Victory points: <span class="victory-points">{{points}}</span></span>' +
+            '</div>',
+        node;
+    for (playerId in playerMap) {
+        if (playerMap.hasOwnProperty(playerId)) {
+            player = playerMap[playerId];
+            node = template(templateStr, player);
+            frag.appendChild(node);
+        }
+    }
+    $('.player-container').append(frag);
+}
+
+function updatePlayerInfo(player) {
+    var players = document.querySelectorAll('.player-info'),
+        playerNode,
+        i;
+    for (i = 0; i < players.length; i++) {
+        playerNode = players[i];
+        if (playerNode.dataset.playerId === player.id) {
+            playerNode.querySelector('.knight-count').textContent = player.knights;
+            playerNode.querySelector('.victory-points').textContent = player.points;
+            return true;
+        }
     }
 }
 

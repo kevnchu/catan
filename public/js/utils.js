@@ -1,4 +1,16 @@
 module.exports = {
+    template: function (templateStr, data) {
+        var parser = new DOMParser(),
+            dummy = document.createElement('div');
+        dummy.innerHTML = templateStr.replace(/{{[a-zA-Z0-9]*}}/g, function (match, offset, str) {
+            match = match.substring(2, match.length - 2).split('.');
+            return match.reduce(function (prev, curr) {
+                return prev[curr];
+            }, data);
+        }, 'g');
+        return dummy.firstChild;
+    },
+
     getIntersectionId: function (intersection) {
         return intersection.slice().sort(function (a, b) {
             return a - b;

@@ -14,6 +14,7 @@ function Players() {
 Players.prototype.addPlayer = function (player) {
     if (this.players.length < 4) {
         player.color = colors.pop();
+        player.name = player.name.replace(/((?![a-zA-Z0-9]).)*/g, '');
         this.players.push(player);
         this.playerMap[player.id] = player;
     } else {
@@ -82,22 +83,20 @@ Players.prototype.getCurrent = function () {
 
 Players.prototype.getSerializablePlayerMap = function () {
     var serializableMap = {},
-        serializableProperties = ['id', 'name', 'points', 'color'],
+        serializableProperties = ['id', 'name', 'points', 'color', 'knights', 'hasLongestRoad', 'hasLargestArmy'],
         playerMap = this.playerMap,
         player,
         playerId,
-        copyProps;
-    
-    copyProps = function (player) {
-        var i,
+        copyProps = function (player) {
+            var i,
             prop,
             copy = {};
-        for (i = 0; i < serializableProperties.length; i++) {
-            prop = serializableProperties[i];
-            copy[prop] = player[prop];
-        }
-        return copy;
-    };
+            for (i = 0; i < serializableProperties.length; i++) {
+                prop = serializableProperties[i];
+                copy[prop] = player[prop];
+            }
+            return copy;
+        };
 
     for (playerId in playerMap) {
         if (playerMap.hasOwnProperty(playerId)) {
