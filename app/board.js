@@ -118,9 +118,10 @@ Board.prototype.setup = function () {
             if (count >= playerCount) {
                 tileIds = utils.getTileIdsFromIntersectionId(intersectionId);
                 for (i = 0; i < tileIds.length; i++) {
-                    resource = resourceMap[tileIds[i]].type;
-                    if (resource !== 'desert')
-                        player.resources[resource]++;
+                    resource = resourceMap[tileIds[i]];
+                    if (resource && resource.type !== 'desert') {
+                        player.resources[resource.type]++;
+                    }
                 }
                 self.updateResources(player);
             }
@@ -238,32 +239,21 @@ Board.prototype.updatePlayerInfo = function (player) {
 Board.prototype.nextTurn = function () {
     var self = this,
         players = self.players,
-        player = players.getCurrent(),
-        socket = player.socket;
-
+        player = players.getCurrent();
     self.roll(player)
         .then(function (diceValue) {
-            // distribute resources
             if (diceValue !== 7) {
                 var tileIds = self.diceMap[diceValue],
                     i;
                 for (i = 0; i < tileIds.length; i++) {
                     self.distributeResources(tileIds[i]);
                 }
+                self.startTurn(player);
             } else {
                 self.moveRobber(player)
-                    .then(function (tileId) {
-                        // steal resource from player who has a settlement
-                        // adjacent to tileId
-                    });
+                    .then(self.stealResources.bind(self))
+                    .then(startTurn);
             }
-            self.startTurn(player);
-            socket.emit('start');
-            socket.once('end', function () {
-                players.next();
-                self.endTurn(player);
-                self.nextTurn();
-            });
         });
 };
 
@@ -292,6 +282,12 @@ Board.prototype.startTurn = function (player) {
             socket.on(channel, handlers[channel]);
         }
     }
+    socket.emit('start');
+    socket.once('end', function () {
+        self.players.next();
+        self.endTurn(player);
+        self.nextTurn();
+    });
 };
 
 Board.prototype.endTurn = function (player) {
@@ -659,14 +655,26 @@ Board.prototype.moveRobber = function (player) {
     // return a promise. when we receive client response, resolve promise
     var self = this,
         deferred = Q.defer();
-    player.socket.emit('moverobber');
-    player.socket.once('moverobber', function (tileId) {
+    player.socket.emit('robber');
+    player.socket.once('robber', function (tileId) {
         tileId = +tileId;
         if (tileId >= 0 && tileId <= 18) {
             self.robber = tileId;
-            deferred.resolve(tileId);
+            deferred.resolve(player, tileId);
         } else {
             deferred.reject(new Error('Invalid robber location'));
+        }
+    });
+    return deferred.promise;
+};
+
+Board.prototype.stealResources = function (player, tileId) {
+    var deferred = Q.defer(),
+        players = getAdjacentPlayers(tileId);
+    player.socket.emit('steal', players);
+    player.socket.once('steal', function (playerId) {
+        if (players.indexOf(playerId) >= 0) {
+            deferred.resolve(player);
         }
     });
     return deferred.promise;

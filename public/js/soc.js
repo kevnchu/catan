@@ -21,6 +21,7 @@ function initSocket(socket) {
             'notify': notify,
             'setup': setup,
             'roll': roll,
+            'robber': moveRobber,
             'update': updateBoard,
             'settlement': placeSettlement,
             'road': placeRoad
@@ -268,6 +269,15 @@ function placeRoad(intersectionId) {
         } else {
             alert('You can\'t place a road there');
         }
+    });
+}
+
+function moveRobber() {
+    alert('Move the robber');
+    token = pubsubz.subscribe('select-tile', function (channel, tileId) {
+        view.moveRobber(tileId);
+        socket.emit('robber', tileId);
+        pubsubz.unsubscribe(token);
     });
 }
 

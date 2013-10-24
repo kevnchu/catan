@@ -17,6 +17,13 @@ node app
 
 Navigate to the server url in your web browser. Once a minimum of 3 players have joined, you can start the game.
 
+## Tests
+
+You can run tests by navigating to the root project directory and executing
+```
+grunt test
+```
+
 ## License
 
 (The MIT License)

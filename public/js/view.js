@@ -8,7 +8,8 @@ module.exports = {
     drawDevCards: drawDevCards,
     highlightIntersections: highlightIntersections,
     highlightEdges: highlightEdges,
-    clearHighlighted: clearHighlighted
+    clearHighlighted: clearHighlighted,
+    moveRobber: moveRobber
 };
 
 var HexLayout = require('./hex_layout'),
@@ -90,9 +91,9 @@ function drawBoard(boardData, config) {
     drawIntersections(board, intersectionCoords.reduce(function (prev, current) {
         return prev.concat(current);
     }));
-    drawRobber(boardData.diceMap[7][0]);
     drawPlayers(playerMap);
     svg.appendChild(board);
+    drawRobber(boardData.diceMap[7][0]);
 }
 
 function drawResources(resources) {
@@ -246,14 +247,12 @@ function drawCity() {
 
 function drawRobber(tileId) {
     var board = $('svg g'),
-        coordinates = layout.getTileCoordinates(tileId),
         url = 'images/robber.png';
     robber = document.createElementNS(svgNS, 'image');
     robber.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
     robber.setAttribute('height', '20px');
     robber.setAttribute('width', '20px');
-    robber.setAttribute('x', coordinates[0] + 30);
-    robber.setAttribute('y', coordinates[1] + 20);
+    moveRobber(tileId);
     board.append(robber);
 }
 
@@ -319,6 +318,6 @@ function clearHighlighted() {
 
 function moveRobber(tileId) {
     var coordinates = layout.getTileCoordinates(tileId);
-    robber.setAttribute('x', coordinates[0]);
-    robber.setAttribute('y', coordinates[1]);
+    robber.setAttribute('x', coordinates[0] + 30);
+    robber.setAttribute('y', coordinates[1] + 20);
 }
