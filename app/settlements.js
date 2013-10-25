@@ -31,5 +31,9 @@ Settlements.prototype = {
 
     each: function (fn) {
         this.settlements.forEach(fn);
+    },
+
+    filter: function (fn) {
+        return this.settlements.filter(fn);
     }
 };

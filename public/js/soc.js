@@ -22,6 +22,7 @@ function initSocket(socket) {
             'setup': setup,
             'roll': roll,
             'robber': moveRobber,
+            'steal': steal,
             'update': updateBoard,
             'settlement': placeSettlement,
             'road': placeRoad
@@ -256,7 +257,7 @@ function placeSettlement() {
 function placeRoad(intersectionId) {
     alert('choose road.');
     showValidEdges(intersectionId);
-    token = pubsubz.subscribe('select-edge', function (channel, edge) {
+    var token = pubsubz.subscribe('select-edge', function (channel, edge) {
         if (board.isValidRoad(player.id, edge)) {
             var road = {
                 playerId: player.id,
@@ -274,9 +275,17 @@ function placeRoad(intersectionId) {
 
 function moveRobber() {
     alert('Move the robber');
-    token = pubsubz.subscribe('select-tile', function (channel, tileId) {
+    var token = pubsubz.subscribe('select-tile', function (channel, tileId) {
         view.moveRobber(tileId);
         socket.emit('robber', tileId);
+        pubsubz.unsubscribe(token);
+    });
+}
+
+function steal(players) {
+    var playerMap = board.playerMap;
+    var token = pubsubz.subscribe('select-player', function (channel, playerId) {
+        socket.emit('steal', playerId);
         pubsubz.unsubscribe(token);
     });
 }

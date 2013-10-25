@@ -158,7 +158,7 @@ Board.prototype.roll = function (player) {
     player.socket.once('roll', function () {
         var diceValue = rollDice();
         self.notify(player.name + ' rolled ' + diceValue);
-        deferred.resolve(diceValue, player.id);
+        deferred.resolve(diceValue);
     });
 
     return deferred.promise;
@@ -195,25 +195,29 @@ Board.prototype.chooseRoad = function (player, intersectionId) {
 Board.prototype.distributeResources = function (tileId) {
     var self = this,
         resource = self.resourceMap[tileId].type,
-        settlements = self.settlements,
+        settlements = self.getAdjacentSettlements(tileId),
         players = self.players,
         updateQueue = [],
         i;
     tileId = +tileId;
 
-    settlements.each(function (settlement) {
-        var intersection = utils.getTileIdsFromIntersectionId(settlement.intersectionId);
-        if (intersection.indexOf(tileId) >= 0) {
-            var player = players.getPlayer(settlement.playerId);
-            player.resources[resource] += settlement.type === 'city' ? 2 : 1;
-            if (updateQueue.indexOf(player.id) < 0) {
-                updateQueue.push(player.id);
-            }
+    settlements.forEach(function (settlement) {
+        var player = players.getPlayer(settlement.playerId);
+        player.resources[resource] += settlement.type === 'city' ? 2 : 1;
+        if (updateQueue.indexOf(player.id) < 0) {
+            updateQueue.push(player.id);
         }
     });
     for (i = 0; i < updateQueue.length; i++) {
         self.updateResources(players.getPlayer(updateQueue[i]));
     }
+};
+
+Board.prototype.getAdjacentSettlements = function (tileId) {
+    return this.settlements.filter(function (settlement) {
+        var intersection = utils.getTileIdsFromIntersectionId(settlement.intersectionId);
+        return intersection.indexOf(tileId) >= 0;
+    });
 };
 
 Board.prototype.updateResources = function (player) {
@@ -252,7 +256,7 @@ Board.prototype.nextTurn = function () {
             } else {
                 self.moveRobber(player)
                     .then(self.stealResources.bind(self))
-                    .then(startTurn);
+                    .when(self.startTurn.bind(self));
             }
         });
 };
@@ -649,6 +653,8 @@ Board.prototype.initResourceValues = function (resourceMap) {
 
 /**
  * prompt player to choose robber location
+ * returns promise that is resolved with an object containing
+ * a player object and a tileId.
  * @param {object} player
  */
 Board.prototype.moveRobber = function (player) {
@@ -660,7 +666,7 @@ Board.prototype.moveRobber = function (player) {
         tileId = +tileId;
         if (tileId >= 0 && tileId <= 18) {
             self.robber = tileId;
-            deferred.resolve(player, tileId);
+            deferred.resolve({player: player, tileId: tileId});
         } else {
             deferred.reject(new Error('Invalid robber location'));
         }
@@ -668,16 +674,41 @@ Board.prototype.moveRobber = function (player) {
     return deferred.promise;
 };
 
-Board.prototype.stealResources = function (player, tileId) {
-    var deferred = Q.defer(),
-        players = getAdjacentPlayers(tileId);
-    player.socket.emit('steal', players);
-    player.socket.once('steal', function (playerId) {
-        if (players.indexOf(playerId) >= 0) {
+Board.prototype.stealResources = function (message) {
+    // FIXME
+    var self = this,
+        player = message.player,
+        tileId = message.tileId,
+        deferred,
+        players = self.getAdjacentSettlements(tileId).map(function (settlement) {
+            return settlement.playerId;
+        });
+
+    if (players.length) {
+        deferred = Q.defer();
+        player.socket.emit('steal', players);
+        player.socket.once('steal', function (playerId) {
+            if (players.indexOf(playerId) >= 0) {
+                var other = self.players.byPlayerId(playerId),
+                    resources = utils.shuffleArray(['brick', 'sheep', 'stone', 'wheat', 'wood']),
+                    resource,
+                    count;
+                while (resources.length) {
+                    resource = resources.pop();
+                    count = resources[resource];
+                    if (count)
+                        break;
+                }
+                other.resources[resource] -= 1;
+                player.resources[resource] += 1;
+                updateResources(other);
+                updateResources(player);
+            }
             deferred.resolve(player);
-        }
-    });
-    return deferred.promise;
+        });
+        return deferred.promise;
+    } 
+    return player;
 };
 
 Board.prototype.rollDice = function () {

@@ -137,11 +137,15 @@ function drawPlayers(playerMap) {
                 '<span>Knights: <span class="knight-count">{{knights}}</span></span>' +
                 '<span>Victory points: <span class="victory-points">{{points}}</span></span>' +
             '</div>',
-        node;
+        node,
+        clickHandler = function (e) {
+            pubsubz.publish('select-player', this.dataset.playerId);
+        };
     for (playerId in playerMap) {
         if (playerMap.hasOwnProperty(playerId)) {
             player = playerMap[playerId];
             node = template(templateStr, player);
+            node.addEventListener('click', clickHandler);
             frag.appendChild(node);
         }
     }
