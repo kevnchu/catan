@@ -186,6 +186,10 @@ function updateBoard(data) {
             board.player = data.player;
             view.updatePlayerInfo(data.player);
             break;
+        case 'robber':
+            board.moveRobber(data.tileId);
+            view.moveRobber(data.tileId);
+            break;
     }
 }
 
@@ -283,6 +287,7 @@ function moveRobber() {
 }
 
 function steal(players) {
+    alert('choose player to steal resources from');
     var playerMap = board.playerMap;
     var token = pubsubz.subscribe('select-player', function (channel, playerId) {
         socket.emit('steal', playerId);

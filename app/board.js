@@ -76,11 +76,10 @@ Board.prototype.firstRoll = function () {
         count = 0,
         max = 0,
         id;
-
     function rollHelper() {
         var player = players.getCurrent();
         self.roll(player)
-            .then(function (diceValue) {
+            .spread(function (player, diceValue) {
                 if (diceValue > max) {
                     id = player.id;
                     max = diceValue;
@@ -94,7 +93,6 @@ Board.prototype.firstRoll = function () {
                 }
             });
     }
-
     rollHelper();
     return deferred.promise;
 };
@@ -110,39 +108,39 @@ Board.prototype.setup = function () {
     function setupHelper() {
         var player = players.getCurrent();
         self.chooseSettlement(player)
-        .then(function (data) {
-            var intersectionId = data.intersectionId,
-                tileIds,
-                resource,
-                i;
-            if (count >= playerCount) {
-                tileIds = utils.getTileIdsFromIntersectionId(intersectionId);
-                for (i = 0; i < tileIds.length; i++) {
-                    resource = resourceMap[tileIds[i]];
-                    if (resource && resource.type !== 'desert') {
-                        player.resources[resource.type]++;
+            .spread(function (player, intersectionId) {
+                var tileIds,
+                    resource,
+                    i;
+                if (count >= playerCount) {
+                    tileIds = utils.getTileIdsFromIntersectionId(intersectionId);
+                    for (i = 0; i < tileIds.length; i++) {
+                        resource = resourceMap[tileIds[i]];
+                        if (resource && resource.type !== 'desert') {
+                            player.resources[resource.type]++;
+                        }
                     }
+                    self.updateResources(player);
                 }
-                self.updateResources(player);
-            }
-            return data;
-        })
-        .then(function (data) {
-            return self.chooseRoad(data.player, data.intersectionId);
-        })
-        .then(function () {
-            if (++count < 2 * playerCount) {
-                if (count < playerCount) {
-                    players.next();
-                } else if (count > playerCount) {
-                    // give player resources.
-                    players.previous();
+                return arguments;
+            })
+            .spread(function (player, intersectionId) {
+                return self.chooseRoad(player, intersectionId);
+            })
+            .then(function () {
+                if (++count < 2 * playerCount) {
+                    if (count < playerCount) {
+                        players.next();
+                    } else if (count > playerCount) {
+                        // give player resources.
+                        players.previous();
+                    }
+                    setupHelper();
+                } else {
+                    deferred.resolve();
                 }
-                setupHelper();
-            } else {
-                deferred.resolve();
-            }
-        });
+            })
+            .fail(console.error);
     }
 
     setupHelper();
@@ -158,7 +156,7 @@ Board.prototype.roll = function (player) {
     player.socket.once('roll', function () {
         var diceValue = rollDice();
         self.notify(player.name + ' rolled ' + diceValue);
-        deferred.resolve(diceValue);
+        deferred.resolve([player, diceValue]);
     });
 
     return deferred.promise;
@@ -171,7 +169,7 @@ Board.prototype.chooseSettlement = function (player) {
     player.socket.emit('settlement');
     player.socket.once('settlement', function (intersectionId) {
         self.placeSettlement(player, intersectionId);
-        deferred.resolve({player: player, intersectionId: intersectionId});
+        deferred.resolve([player, intersectionId]);
     });
     return deferred.promise;
 };
@@ -182,7 +180,7 @@ Board.prototype.chooseRoad = function (player, intersectionId) {
     player.socket.emit('road', intersectionId);
     player.socket.once('road', function (edge) {
         self.placeRoad(player, edge);
-        deferred.resolve({player: player, edge: edge});
+        deferred.resolve([player, edge]);
     });
     return deferred.promise;
 };
@@ -192,25 +190,31 @@ Board.prototype.chooseRoad = function (player, intersectionId) {
  * who have a settlement adjacent to that tile.
  * @param {number} tileId
  */
-Board.prototype.distributeResources = function (tileId) {
-    var self = this,
-        resource = self.resourceMap[tileId].type,
-        settlements = self.getAdjacentSettlements(tileId),
-        players = self.players,
-        updateQueue = [],
-        i;
-    tileId = +tileId;
+Board.prototype.distributeResources = function (player, diceValue) {
+    if (diceValue !== 7) {
+        var self = this,
+            tileIds = self.diceMap[diceValue],
+            players = self.players,
+            updateQueue = [],
+            i;
 
-    settlements.forEach(function (settlement) {
-        var player = players.getPlayer(settlement.playerId);
-        player.resources[resource] += settlement.type === 'city' ? 2 : 1;
-        if (updateQueue.indexOf(player.id) < 0) {
-            updateQueue.push(player.id);
+        tileIds.forEach(function (tileId) {
+            tileId = +tileId;
+            var settlements = self.getAdjacentSettlements(+tileId);
+            settlements.forEach(function (settlement) {
+                var player = players.getPlayer(settlement.playerId),
+                    resource = self.resourceMap[tileId].type;
+                player.resources[resource] += settlement.type === 'city' ? 2 : 1;
+                if (updateQueue.indexOf(player.id) < 0) {
+                    updateQueue.push(player.id);
+                }
+            });
+        });
+        for (i = 0; i < updateQueue.length; i++) {
+            self.updateResources(players.getPlayer(updateQueue[i]));
         }
-    });
-    for (i = 0; i < updateQueue.length; i++) {
-        self.updateResources(players.getPlayer(updateQueue[i]));
     }
+    return [player, diceValue];
 };
 
 Board.prototype.getAdjacentSettlements = function (tileId) {
@@ -245,20 +249,11 @@ Board.prototype.nextTurn = function () {
         players = self.players,
         player = players.getCurrent();
     self.roll(player)
-        .then(function (diceValue) {
-            if (diceValue !== 7) {
-                var tileIds = self.diceMap[diceValue],
-                    i;
-                for (i = 0; i < tileIds.length; i++) {
-                    self.distributeResources(tileIds[i]);
-                }
-                self.startTurn(player);
-            } else {
-                self.moveRobber(player)
-                    .then(self.stealResources.bind(self))
-                    .when(self.startTurn.bind(self));
-            }
-        });
+        .spread(self.distributeResources.bind(self))
+        .spread(self.moveRobber.bind(self))
+        .spread(self.stealResources.bind(self))
+        .spread(self.startTurn.bind(self))
+        .fail(console.error);
 };
 
 Board.prototype.startTurn = function (player) {
@@ -657,57 +652,59 @@ Board.prototype.initResourceValues = function (resourceMap) {
  * a player object and a tileId.
  * @param {object} player
  */
-Board.prototype.moveRobber = function (player) {
-    // return a promise. when we receive client response, resolve promise
+Board.prototype.moveRobber = function (player, diceValue) {
     var self = this,
         deferred = Q.defer();
-    player.socket.emit('robber');
-    player.socket.once('robber', function (tileId) {
-        tileId = +tileId;
-        if (tileId >= 0 && tileId <= 18) {
-            self.robber = tileId;
-            deferred.resolve({player: player, tileId: tileId});
-        } else {
-            deferred.reject(new Error('Invalid robber location'));
-        }
-    });
-    return deferred.promise;
+    if (diceValue === 7) {
+        player.socket.emit('robber');
+        player.socket.once('robber', function (tileId) {
+            tileId = +tileId;
+            if (tileId >= 0 && tileId <= 18) {
+                self.robber = tileId;
+                self.broadcast('update', {type: 'robber', tileId: tileId});
+                deferred.resolve([player, tileId]);
+            } else {
+                deferred.reject(new Error('Invalid robber location'));
+            }
+        });
+        return deferred.promise;
+    }
+    return player;
 };
 
-Board.prototype.stealResources = function (message) {
-    // FIXME
+Board.prototype.stealResources = function (player, tileId) {
     var self = this,
-        player = message.player,
-        tileId = message.tileId,
         deferred,
+        players;
+    if (tileId >= 0) {
         players = self.getAdjacentSettlements(tileId).map(function (settlement) {
             return settlement.playerId;
         });
-
-    if (players.length) {
-        deferred = Q.defer();
-        player.socket.emit('steal', players);
-        player.socket.once('steal', function (playerId) {
-            if (players.indexOf(playerId) >= 0) {
-                var other = self.players.byPlayerId(playerId),
-                    resources = utils.shuffleArray(['brick', 'sheep', 'stone', 'wheat', 'wood']),
-                    resource,
-                    count;
-                while (resources.length) {
-                    resource = resources.pop();
-                    count = resources[resource];
-                    if (count)
-                        break;
+        if (players.length) {
+            deferred = Q.defer();
+            player.socket.emit('steal', players);
+            player.socket.once('steal', function (playerId) {
+                if (players.indexOf(playerId) >= 0) {
+                    var other = self.players.getPlayer(playerId),
+                        resources = utils.shuffleArray(['brick', 'sheep', 'stone', 'wheat', 'wood']),
+                        resource,
+                        count;
+                    while (resources.length) {
+                        resource = resources.pop();
+                        count = resources[resource];
+                        if (count)
+                            break;
+                    }
+                    other.resources[resource] -= 1;
+                    player.resources[resource] += 1;
+                    self.updateResources(other);
+                    self.updateResources(player);
                 }
-                other.resources[resource] -= 1;
-                player.resources[resource] += 1;
-                updateResources(other);
-                updateResources(player);
-            }
-            deferred.resolve(player);
-        });
-        return deferred.promise;
-    } 
+                deferred.resolve([player]);
+            });
+            return deferred.promise;
+        } 
+    }
     return player;
 };
 
