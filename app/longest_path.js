@@ -16,11 +16,9 @@ function longestPath(edges) {
         edge = edges[i];
         if (visited.indexOf(edge) < 0) {
             visited.push(edge);
-            left = traverse(edge[0], edge, visited, edges, 1);
+            left = traverse(edge[0], edge, visited, edges, 0);
             right = traverse(edge[1], edge, visited, edges, 0);
-            depth = left + right; 
-            if (!left || !right)
-                depth -= 1;
+            depth = left + right + 1; 
             if (depth > max)
                 max = depth;
         }
@@ -41,11 +39,11 @@ function traverse(vertex, current, visited, edges, n) {
             return true;
         }
     }).map(function (edge) {
-        var v = getAdjacentVertex(edge, vertex);
+        var v = getAdjacentVertex(vertex, edge);
         return traverse(v, edge, visited, edges, n + 1);
     });
     // handle the case where result = []. ie there are no adjacent edges
-    result.push(0);
+    result.push(n);
     return Math.max.apply(this, result );
 }
 
@@ -55,8 +53,8 @@ function traverse(vertex, current, visited, edges, n) {
  * @param {array} edge pair of vertices
  * @param {string} v one of the vertices connected by edge
  */
-function getAdjacentVertex(edge, v) {
-    return edge[0] === v ? edge[1] : edge[0];
+function getAdjacentVertex(vertex, edge) {
+    return edge[0] === vertex ? edge[1] : edge[0];
 }
 
 function getAdjacentEdges(vertex, edge, edges) {
