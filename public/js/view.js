@@ -98,11 +98,33 @@ function drawBoard(boardData, config) {
 
 function drawResources(resources) {
     var resourcesContainer = $('.resources-container'),
-        cells = resourcesContainer.find('td');
-    cells.each(function (i, node) {       
-        var type = node.getAttribute('data-resource');
-        node.textContent = resources[type] || 0;
+        img = document.createElement('img'),
+        frag = document.createDocumentFragment(),
+        cardNode,
+        resource,
+        count,
+        i;
+    img.classList.add('resource-card');
+    for (resource in resources) {
+        if (resources.hasOwnProperty(resource)) {
+            count = resources[resource];
+            img.dataset.resourceType = resource;
+            img.setAttribute('src', 'images/' + resource + '-card.png');
+            console.log(count);
+            for (i = 0; i < count; i++) {
+                cardNode = img.cloneNode();
+                frag.appendChild(cardNode);
+            }
+        }
+    }
+    resourcesContainer.on('click', function (e) {
+        if (e.target.classList.contains('resource-card')) {
+            var target = e.target;
+            target.classList.toggle('highlight');
+            pubsubz.publish('select-resource', target.dataset.resourceType);
+        }
     });
+    resourcesContainer.append(frag);
 }
 
 function drawDevCards(devCards) {

@@ -120,3 +120,12 @@
 .desert-tile {
     fill: #8B7C6B;
 }
+
+img.resource-card {
+    border: 2px solid transparent;
+    margin-right: 5px;
+}
+
+img.resource-card.highlight {
+    border: 2px solid pink;
+}
