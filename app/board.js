@@ -91,7 +91,8 @@ Board.prototype.firstRoll = function () {
                     players.setStartPlayer(id);
                     deferred.resolve();
                 }
-            });
+            })
+            .fail(deferred.reject);
     }
     rollHelper();
     return deferred.promise;
@@ -132,7 +133,6 @@ Board.prototype.setup = function () {
                     if (count < playerCount) {
                         players.next();
                     } else if (count > playerCount) {
-                        // give player resources.
                         players.previous();
                     }
                     setupHelper();
@@ -140,7 +140,7 @@ Board.prototype.setup = function () {
                     deferred.resolve();
                 }
             })
-            .fail(console.error);
+            .fail(deferred.reject);
     }
 
     setupHelper();
@@ -149,40 +149,28 @@ Board.prototype.setup = function () {
 
 Board.prototype.roll = function (player) {
     // return a promise. when we receive client response, resolve promise
-    var self = this,
-        rollDice = self.rollDice,
-        deferred = Q.defer();
-    player.socket.emit('roll');
-    player.socket.once('roll', function () {
-        var diceValue = rollDice();
+    var self = this;
+    return triggerPlayerResponse(player.socket, 'roll', null, function () {
+        var diceValue = self.rollDice();
         self.notify(player.name + ' rolled ' + diceValue);
-        deferred.resolve([player, diceValue]);
+        return [player, diceValue];
     });
-
-    return deferred.promise;
 };
 
 Board.prototype.chooseSettlement = function (player) {
-    // return a promise. when we receive client response, resolve promise
-    var self = this,
-        deferred = Q.defer();
-    player.socket.emit('settlement');
-    player.socket.once('settlement', function (intersectionId) {
+    var self = this;
+    return triggerPlayerResponse(player.socket, 'settlement', null, function (intersectionId) {
         self.placeSettlement(player, intersectionId);
-        deferred.resolve([player, intersectionId]);
+        return [player, intersectionId];
     });
-    return deferred.promise;
 };
 
 Board.prototype.chooseRoad = function (player, intersectionId) {
-    var self = this,
-        deferred = Q.defer();
-    player.socket.emit('road', intersectionId);
-    player.socket.once('road', function (edge) {
+    var self = this;
+    return triggerPlayerResponse(player.socket, 'road', intersectionId, function (edge) {
         self.placeRoad(player, edge);
-        deferred.resolve([player, edge]);
+        return [player, edge];
     });
-    return deferred.promise;
 };
 
 /**
@@ -653,37 +641,27 @@ Board.prototype.initResourceValues = function (resourceMap) {
  * @param {object} player
  */
 Board.prototype.moveRobber = function (player, diceValue) {
-    var self = this,
-        deferred = Q.defer();
+    var self = this;
     if (diceValue === 7) {
-        player.socket.emit('robber');
-        player.socket.once('robber', function (tileId) {
+        return triggerPlayerResponse(player.socket, 'robber', null, function (tileId) {
             tileId = +tileId;
-            if (tileId >= 0 && tileId <= 18) {
-                self.robber = tileId;
-                self.broadcast('update', {type: 'robber', tileId: tileId});
-                deferred.resolve([player, tileId]);
-            } else {
-                deferred.reject(new Error('Invalid robber location'));
-            }
+            self.robber = tileId;
+            self.broadcast('update', {type: 'robber', tileId: tileId});
+            return [player, tileId];
         });
-        return deferred.promise;
     }
-    return player;
+    return [player];
 };
 
 Board.prototype.stealResources = function (player, tileId) {
     var self = this,
-        deferred,
         players;
     if (tileId >= 0) {
         players = self.getAdjacentSettlements(tileId).map(function (settlement) {
             return settlement.playerId;
         });
         if (players.length) {
-            deferred = Q.defer();
-            player.socket.emit('steal', players);
-            player.socket.once('steal', function (playerId) {
+            return triggerPlayerResponse(player.socket, 'steal', players, function (playerId) {
                 if (players.indexOf(playerId) >= 0) {
                     var other = self.players.getPlayer(playerId),
                         resources = utils.shuffleArray(['brick', 'sheep', 'stone', 'wheat', 'wood']),
@@ -700,12 +678,11 @@ Board.prototype.stealResources = function (player, tileId) {
                     self.updateResources(other);
                     self.updateResources(player);
                 }
-                deferred.resolve([player]);
+                return [player];
             });
-            return deferred.promise;
         } 
     }
-    return player;
+    return [player];
 };
 
 Board.prototype.rollDice = function () {
@@ -729,3 +706,12 @@ Board.prototype.broadcast = function (channel, data) {
         player.socket.emit(channel, data);
     }
 };
+
+function triggerPlayerResponse(socket, channel, data, fn, context) {
+    var deferred = Q.defer();
+    socket.emit(channel, data);
+    socket.once(channel, function () {
+        deferred.resolve(fn.apply(context, arguments));
+    });
+    return deferred.promise;
+}
