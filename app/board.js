@@ -260,6 +260,9 @@ Board.prototype.startTurn = function (player) {
             playdevcard: function () {
                 self.playDevCard(player);
                 socket.removeAllListeners('playdevcard');
+            },
+            trade: function (message) {
+                self.trade(player, message.resources, message.playerId);
             }
         },
         channel;
@@ -283,6 +286,7 @@ Board.prototype.endTurn = function (player) {
     socket.removeAllListeners('settlement');
     socket.removeAllListeners('devcard');
     socket.removeAllListeners('playdevcard');
+    socket.removeAllListeners('trade');
 };
 
 Board.prototype.canPay = function (player, price) {
@@ -403,6 +407,34 @@ Board.prototype.placeCity = function (playerId, intersectionId) {
     this.broadcast('update', {type: 'city', city: settlement});
     this.updateVictoryPoints(player, 1);
     return settlement;
+};
+
+Board.prototype.trade = function (player, resources1, otherId) {
+    var self = this,
+        otherPlayer = self.players.getPlayer(otherId);
+    if (otherPlayer) {
+        return triggerPlayerResponse(otherPlayer.socket, 'trade', resources1, function (resources2) {
+            triggerPlayerResponse(player.socket, 'confirmtrade', resources2, function () {
+                var playerResources = player.resources,
+                    otherResources = otherPlayer.resources,
+                    resource;
+                for (resource in resources1) {
+                    if (resources1.hasOwnProperty(resource)) {
+                        playerResources[resource] -= resources1[resource];
+                        otherResources[resource] += resources1[resource];
+                    }
+                }
+                for (resource in resources2) {
+                    if (resources2.hasOwnProperty(resource)) {
+                        playerResources[resource] += resources2[resource];
+                        otherResources[resource] -= resources2[resource];
+                    }
+                }
+                self.updateResources(player);
+                self.updateResources(otherPlayer);
+            });
+        });
+    }
 };
 
 Board.prototype.drawCard = function (player) {

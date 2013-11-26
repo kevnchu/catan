@@ -145,3 +145,7 @@ Players.prototype.reset = function () {
 Players.prototype.count = function () {
     return this.players.length;
 };
+
+Players.prototype.each = function (fn) {
+    this.players.forEach(fn);
+};

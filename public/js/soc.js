@@ -23,6 +23,14 @@ function initSocket(socket) {
             'roll': roll,
             'robber': moveRobber,
             'steal': steal,
+            'trade': function (resources) {
+                view.updateStatus('Player is offering', printResources(resources));
+                $('.submit-trade-button').removeClass('hidden');
+            },
+            'confirmtrade': function (resources) {
+                view.updateStatus('confirm trade for', printResources(resources));
+                $('.confirm-trade-button').removeClass('hidden');
+            },
             'update': updateBoard,
             'settlement': placeSettlement,
             'road': placeRoad
@@ -36,7 +44,7 @@ function initSocket(socket) {
     });
 
     socket.on('disconnect', function () {
-        updateStatus('Disconnected from server');
+        view.updateStatus('Disconnected from server');
     });
 
     for (channel in handlerMap) {
@@ -62,7 +70,7 @@ function setup(boardData) {
         }
     }
     boardData.tileDiceValueMap = tileDiceValueMap;
-    updateStatus('');
+    view.updateStatus('');
     board = new Board(boardData);
     view.drawBoard(boardData, {size: 60});
     view.drawResources(player.resources);
@@ -75,7 +83,9 @@ function registerControls(context) {
         roll: handleRoll,
         build: build,
         sendChat: sendChat,
-        trade: '',
+        confirmTrade: confirmTrade,
+        submitTrade: submitTrade,
+        initiateTrade: initiateTrade,
         endTurn: endTurn,
         buildSettlement: buildSettlement,
         buildRoad: buildRoad,
@@ -103,20 +113,16 @@ function initPlayer(_player) {
 
 function startTurn() {
     alert('Your turn');
-    $('.action-controls').removeClass('hidden');
+    $('.action-controls button').removeClass('hidden');
 }
 
 function endTurn() {
     socket.emit('end');
-    $('.action-controls, .build-controls').addClass('hidden');
+    $('.action-controls button, .build-controls button').addClass('hidden');
 }
 
 function notify(data) {
     alert(data.msg);
-}
-
-function updateStatus(message) {
-    $('#status-container').text(message);
 }
 
 function sendChat() {
@@ -151,11 +157,11 @@ function handleRoll() {
 function ready() {
     socket.emit('ready');
     $('#ready-button').addClass('hidden');
-    updateStatus('Waiting');
+    view.updateStatus('Waiting');
 }
 
 function build(e) {
-    $('.build-controls').toggleClass('hidden');
+    $('.build-controls button').toggleClass('hidden');
 }
 
 function updateDevCards(devCards) {
@@ -191,6 +197,41 @@ function updateBoard(data) {
             view.moveRobber(data.tileId);
             break;
     }
+}
+
+function initiateTrade() {
+    alert('select player to trade with');
+    var token = pubsubz.subscribe('select-player', function (channel, playerId) {
+        view.highlightPlayer(playerId);
+        alert('Select resources to trade');
+        $('.submit-trade-button').removeClass('hidden');
+        pubsubz.unsubscribe(token);
+    });
+}
+
+function submitTrade() {
+    var selectedResources = $('.resource-card.highlight'),
+        selectedPlayer = $('.player-info.highlight'),
+        resources = {},
+        playerId;
+    selectedResources.each(function (i, cardNode) {
+        var resourceType = cardNode.dataset.resourceType;
+        if (!resources[resourceType]) {
+            resources[resourceType] = 0;
+        }
+        resources[resourceType] += 1;
+    });
+    if (selectedPlayer.length) {
+        playerId = selectedPlayer[0].dataset.playerId;
+        view.clearHighlightedPlayers();
+    }
+    socket.emit('trade', {resources: resources, playerId: playerId});
+    $('.submit-trade-button').addClass('hidden');
+}
+
+function confirmTrade() {
+    socket.emit('confirmtrade');
+    $('.confirm-trade-button').addClass('hidden');
 }
 
 function buildSettlement() {
@@ -293,6 +334,17 @@ function steal(players) {
         socket.emit('steal', playerId);
         pubsubz.unsubscribe(token);
     });
+}
+
+function printResources(resources) {
+    var resource,
+        count,
+        str = [];
+    for (resource in resources) {
+        count = resources[resource];
+        str.push(count + ' ' + resource);
+    }
+    return str.join(', ');
 }
 
 socket = createSocket();

@@ -14,6 +14,7 @@ function handleConnection(socket) {
         player;
 
     socket.on('adduser', function (name) {
+        // FIXME just keep reference to socket.id
         player = new Player(name, socket);
         socket.emit('adduser', player.serialize());
     });

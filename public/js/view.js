@@ -6,10 +6,13 @@ module.exports = {
     drawCity: drawCity,
     updatePlayerInfo: updatePlayerInfo,
     drawDevCards: drawDevCards,
+    highlightPlayer: highlightPlayer,
     highlightIntersections: highlightIntersections,
     highlightEdges: highlightEdges,
     clearHighlighted: clearHighlighted,
-    moveRobber: moveRobber
+    clearHighlightedPlayers: clearHighlightedPlayers,
+    moveRobber: moveRobber,
+    updateStatus: updateStatus
 };
 
 var HexLayout = require('./hex_layout'),
@@ -69,6 +72,7 @@ function drawBoard(boardData, config) {
             pubsubz.publish('select-tile', tileId);
         }
     });
+    initResources();
 
     hexNode.setAttribute('border', '1px solid black');
 
@@ -96,6 +100,16 @@ function drawBoard(boardData, config) {
     drawRobber(boardData.diceMap[7][0]);
 }
 
+function initResources() {
+    $('.resources-container').on('click', function (e) {
+        if (e.target.classList.contains('resource-card')) {
+            var target = e.target;
+            target.classList.toggle('highlight');
+            pubsubz.publish('select-resource', target.dataset.resourceType);
+        }
+    });
+}
+
 function drawResources(resources) {
     var resourcesContainer = $('.resources-container'),
         img = document.createElement('img'),
@@ -104,26 +118,19 @@ function drawResources(resources) {
         resource,
         count,
         i;
+    resourcesContainer.empty();
     img.classList.add('resource-card');
     for (resource in resources) {
         if (resources.hasOwnProperty(resource)) {
             count = resources[resource];
             img.dataset.resourceType = resource;
             img.setAttribute('src', 'images/' + resource + '-card.png');
-            console.log(count);
             for (i = 0; i < count; i++) {
                 cardNode = img.cloneNode();
                 frag.appendChild(cardNode);
             }
         }
     }
-    resourcesContainer.on('click', function (e) {
-        if (e.target.classList.contains('resource-card')) {
-            var target = e.target;
-            target.classList.toggle('highlight');
-            pubsubz.publish('select-resource', target.dataset.resourceType);
-        }
-    });
     resourcesContainer.append(frag);
 }
 
@@ -282,6 +289,28 @@ function drawRobber(tileId) {
     board.append(robber);
 }
 
+function highlightPlayer(playerId) {
+    var players = document.querySelectorAll('.player-info'),
+        playerNode,
+        i;
+    for (i = 0; i < players.length; i++) {
+        playerNode = players[i];
+        if (playerNode.dataset.playerId === playerId) {
+            playerNode.classList.add('highlight');
+            break;
+        }
+    }
+}
+
+function clearHighlightedPlayers() {
+    var players = document.querySelectorAll('.player-info'),
+        playerNode,
+        i;
+    for (i = 0; i < players.length; i++) {
+        players[i].classList.remove('highlight');
+    }
+}
+
 /**
  * @param {array} intersections array of intersection ids
  */
@@ -346,4 +375,8 @@ function moveRobber(tileId) {
     var coordinates = layout.getTileCoordinates(tileId);
     robber.setAttribute('x', coordinates[0] + 30);
     robber.setAttribute('y', coordinates[1] + 20);
+}
+
+function updateStatus(message) {
+    $('#status-container').text(message);
 }

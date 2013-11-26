@@ -30,19 +30,25 @@
                 <button class="roll-button hidden" data-click="roll">Roll</button>
 
                 <!-- Actions -->
-                <div class="pane action-controls hidden" >
-                    <button class="build-button" data-click="build">Build</button>
-                    <button class="devcard-button" data-click="playDevCard">Play Development Card</button>
-                    <button class="trade-button" data-click="trade">Trade</button>
-                    <button class="end-button" data-click="endTurn">End Turn</button>
+                <div class="pane action-controls" >
+                    <button class="build-button hidden" data-click="build">Build</button>
+                    <button class="devcard-button hidden" data-click="playDevCard">Play Development Card</button>
+                    <button class="initiate-trade-button hidden" data-click="initiateTrade">Trade</button>
+                    <button class="end-button hidden" data-click="endTurn">End Turn</button>
                 </div>
 
                 <!-- Building -->
-                <div class="pane build-controls hidden">
-                    <button class="build-settlement-button" data-click="buildSettlement">Settlement</button>
-                    <button class="build-road-button" data-click="buildRoad">Road</button>
-                    <button class="build-city-button" data-click="buildCity">City</button>
-                    <button class="build-devcard-button" data-click="buildDevCard">Development Card</button>
+                <div class="pane build-controls">
+                    <button class="build-settlement-button hidden" data-click="buildSettlement">Settlement</button>
+                    <button class="build-road-button hidden" data-click="buildRoad">Road</button>
+                    <button class="build-city-button hidden" data-click="buildCity">City</button>
+                    <button class="build-devcard-button hidden" data-click="buildDevCard">Development Card</button>
+                </div>
+
+                <!-- Trade -->
+                <div class="trade-controls">
+                    <button class="submit-trade-button hidden" data-click="submitTrade">Submit Trade</button>
+                    <button class="confirm-trade-button hidden" data-click="confirmTrade">Confirm Trade</button>
                 </div>
             </div>
 
