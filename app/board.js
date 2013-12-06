@@ -179,13 +179,28 @@ Board.prototype.chooseRoad = function (player, intersectionId) {
  * @param {number} tileId
  */
 Board.prototype.distributeResources = function (player, diceValue) {
-    if (diceValue !== 7) {
-        var self = this,
-            tileIds = self.diceMap[diceValue],
-            players = self.players,
-            updateQueue = [],
-            i;
-
+    var self = this,
+        players = self.players,
+        tileIds,
+        updateQueue = [],
+        i;
+    if (diceValue === 7) {
+        // take away resources if any player has > 7.
+        players.each(function (p) {
+            var resources = p.resources,
+                count = 0,
+                type;
+            for (type in resources) {
+                if (resources.hasOwnProperty(type)) {
+                    count += resources[type];
+                }
+            }
+            if (count > 7) {
+                // take away half.
+            }
+        });
+    } else {
+        tileIds = self.diceMap[diceValue];
         tileIds.forEach(function (tileId) {
             tileId = +tileId;
             var settlements = self.getAdjacentSettlements(+tileId);
