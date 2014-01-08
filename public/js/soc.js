@@ -89,9 +89,8 @@ function registerControls(context) {
         endTurn: endTurn,
         buildSettlement: buildSettlement,
         buildRoad: buildRoad,
-        buildCity: '',
+        buildCity: buildCity,
         buildDevCard: buildDevCard,
-        playDevCard: ''
     };
     $('button', context).each(function (i, button) {
         var buttonId,
@@ -242,6 +241,9 @@ function buildSettlement() {
     } else {
         alert('you don\'t have the resources to build a settlement');
     }
+}
+
+function buildCity() {
 }
 
 function buildRoad() {

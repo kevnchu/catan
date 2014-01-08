@@ -15,7 +15,6 @@ function Board(boardData) {
     self.roads = new Roads();
     self.resourceMap = boardData.resourceMap;
     self.diceMap = boardData.diceMap;
-    self.tileDiceValueMap = boardData.tileDiceValueMap;
     self.playerMap = boardData.playerMap;
     self.moveRobber(self.diceMap[7][0]);
 }
