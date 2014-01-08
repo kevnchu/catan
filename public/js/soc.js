@@ -235,7 +235,7 @@ function confirmTrade() {
 
 function buildSettlement() {
     var resources = player.resources;
-    if (resources.brick >= 1 && resources.sheep >= 1 && 
+    if (resources.brick >= 1 && resources.sheep >= 1 &&
         resources.wheat >= 1 && resources.wood >= 1) {
         placeSettlement();
     } else {
@@ -270,7 +270,7 @@ function showValidIntersections() {
 }
 
 /**
- * 
+ *
  * @param {string} [intersectionId]
  */
 function showValidEdges(intersectionId) {

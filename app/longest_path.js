@@ -8,7 +8,7 @@ function longestPath(edges) {
         left,
         right,
         i;
-    
+
     if (!edges.length) {
         return 0;
     }
@@ -18,7 +18,7 @@ function longestPath(edges) {
             visited.push(edge);
             left = traverse(edge[0], edge, visited, edges, 0);
             right = traverse(edge[1], edge, visited, edges, 0);
-            depth = left + right + 1; 
+            depth = left + right + 1;
             if (depth > max)
                 max = depth;
         }
@@ -62,7 +62,7 @@ function getAdjacentEdges(vertex, edge, edges) {
         return !equal(edge, e) && isAdjacent(vertex, e);
     });
 }
-                        
+
 function isAdjacent(vertex, edge) {
     return vertex === edge[0] || vertex === edge[1];
 }

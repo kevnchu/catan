@@ -6,7 +6,7 @@ var components = require('./components'),
     utils = require('./utils');
 
 /**
- * 
+ *
  * @param {object} boardData
  */
 function Board(boardData) {
@@ -49,7 +49,6 @@ Board.prototype.getValidEdges = function (playerId, intersectionId) {
 };
 
 /**
- * 
  * @param {object} settlement
  */
 Board.prototype.addSettlement = function (settlement) {
@@ -57,7 +56,6 @@ Board.prototype.addSettlement = function (settlement) {
 };
 
 /**
- * 
  * @param {object} road
  */
 Board.prototype.addRoad = function (road) {
@@ -65,7 +63,6 @@ Board.prototype.addRoad = function (road) {
 };
 
 /**
- * 
  * @param {object} city
  */
 Board.prototype.addCity = function (city) {
@@ -151,7 +148,7 @@ Board.prototype.isEdgeOccupied = function (edge) {
     var roads = this.roads,
         startId = edge[0],
         endId = edge[1];
-        
+
     return roads.some(function (road) {
         var otherEdge = road.edge,
             intersectionId = otherEdge[0];
@@ -179,7 +176,6 @@ Board.prototype.isValidRoad = function (playerId, edge) {
 };
 
 /**
- * 
  * @param {string} playerId
  * @param {string} intersectionId
  */
@@ -192,7 +188,6 @@ Board.prototype.isValidCity = function (playerId, intersectionId) {
 };
 
 /**
- * 
  * @param {number} tileId
  */
 Board.prototype.moveRobber = function (tileId) {

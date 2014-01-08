@@ -42,7 +42,7 @@ function createDeck() {
         },
         deck = [],
         type;
-    
+
     for (type in cards) {
         if (cards.hasOwnProperty(type)) {
             addCard(deck, type, cards[type]);

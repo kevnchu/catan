@@ -585,7 +585,7 @@ Board.prototype.isEdgeOccupied = function (edge) {
     var roads = this.roads,
         startId = edge[0],
         endId = edge[1];
-        
+
     return roads.some(function (road) {
         var otherEdge = road.edge,
             intersectionId = otherEdge[0];
@@ -727,7 +727,7 @@ Board.prototype.stealResources = function (player, tileId) {
                 }
                 return [player];
             });
-        } 
+        }
     }
     return [player];
 };

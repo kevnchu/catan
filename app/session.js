@@ -23,7 +23,7 @@ function handleConnection(socket) {
         var board;
         boardId = id;
         board = boards[boardId];
-        if (board) { 
+        if (board) {
             if (!board.addUser) {
                 board = boards[boardId] = new Board(boardId);
             }
